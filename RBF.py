@@ -1,40 +1,79 @@
 import numpy as np
 from copy import deepcopy
 
+class Unit:
+    """
+    RBFの隠れ層のニューロン
+    各ニューロンに関連するパラメータをただの行列として保持すると，
+    MRANのStep 5でニューロンを消す時にめんどくさくなるのでこのクラスは必要
+    """
+    def __init__(self, id, wk, myu, sigma):
+        """
+        このクラスのメンバー変数はprivate扱いしない
+        """
+        self.id = id
+        self.wk = wk
+        self.myu = myu
+        self.sigma = sigma
+
 class RBF:
+    """
+    ネットワークパラメータはニューロンごとで管理し，計算時に行列を構築する
+    """
     def __init__(self, ny, h, input_size):
         self._ny = ny
         self._h = h
         self._input_size = input_size
 
         # ネットワークパラメータ
-        self._sigma = np.array([10 for _ in range(self._h)], dtype=np.float64)
-        # self._sigma2 = np.array([10 for _ in range(self._h)], dtype=np.float64)
-        self._myu = np.array([0 for _ in range(self._input_size*self._h)], dtype=np.float64).reshape(self._input_size, self._h)
-        self._w0 = np.array([1 for _ in range(self._ny)], dtype=np.float64)
-        self._wk = np.array([k for k in range(self._ny*self._h)], dtype=np.float64).reshape(self._ny, self._h)
+        self._w0 = np.array([1 for _ in range(self._ny)], dtype=np.float64) # 隠れニューロン0から始まるからバイアスはニューロンのパラメータではない
+        self._wk = None
+        self._myu = None
+        self._sigma = None
 
-        self._r = np.empty(self._h)
-        self._r2 = np.empty(self._h)
-        self._phi = np.empty(self._h)
+        self._unit_id = self._h # 隠れ層ニューロン用id
+        self._hidden_unit = {} # 隠れ層ニューロン保存用
+        if self._h :
+            for hi in range(self._h):
+                self._hidden_unit.append(Unit(
+                    id = hi,
+                    wk = np.array([k for k in range(self._ny)], dtype=np.float64),
+                    myu = np.array([0 for _ in range(self._input_size)], dtype=np.float64),
+                    sigma = 10 + hi
+                ))
+            self._gen_network_from_hidden_unit()
+        # self._sigma = np.array([10+i for i in range(self._h)], dtype=np.float64)
+        # self._myu = np.array([0 for _ in range(self._input_size*self._h)], dtype=np.float64).reshape(self._input_size, self._h)
+        # self._wk = np.array([k for k in range(self._ny*self._h)], dtype=np.float64).reshape(self._ny, self._h)
 
-    def _calc_diff_from_myu(self, myu, xi):
-        return xi - myu
-
-    def _calc_pow(self, r):
-        return r@r
+        # あとで使うので保存用
+        self._r = None
+        self._r2 = None
+        self._phi = None
+    
+    def _gen_network_from_hidden_unit(self):
+        wk = []
+        myu = []
+        sigma = []
+        for unit in self._hidden_unit.values():
+            wk.append(unit.wk)
+            myu.append(unit.myu)
+            sigma.append(unit.sigma)
+        self._wk = np.vstack(wk).T
+        self._myu = np.vstack(myu).T
+        self._sigma = np.array(sigma, np.float64)
+        return
 
     def update_param_from_xi(self, xi):
-        # np.set_printoptions(precision=10, suppress=True)
         self._w0 = xi[:self._ny]
         z1 = self.get_one_unit_param_num()
         left = self._ny
-        for hi in range(self._h):
-            self._wk[:, hi] = xi[left:left+self._ny]
+        for unit in self._hidden_unit.values():
+            unit.wk = xi[left:left+self._ny]
             left += self._ny
-            self._myu[:, hi] = xi[left:left+self._input_size]
+            unit.myu = xi[left:left+self._input_size]
             left += self._input_size
-            self._sigma[hi] = xi[left]
+            unit.sigma = xi[left]
             left += 1
         return
 
@@ -50,6 +89,8 @@ class RBF:
         """
         更新できるパラメータの数 = count(w0) + count(wk) + count(myu) + count(sigma)
         """
+        if self._h == 0:
+            return self._ny
         return self._w0.size + self._wk.size + self._myu.size + self._sigma.size
 
     def get_one_unit_param_num(self):
@@ -65,39 +106,27 @@ class RBF:
             xi(np.array(np.float64)):
                 対象ベクトル
         Returns:
-            myu_ir(np.array(np.float64)):
+            myu_ir(np.array(np.float64)):←消した
                 xiに一番近いμ
             di(double):
                 xiと一番近いμとの距離
         """
-        di = np.inf
+        di = 1.0e8
         for col in range(self._h):
             e = np.linalg.norm(xi - self._myu[:, col])
             if e < di:
                 di = deepcopy(e)
-                myu_ir = deepcopy(self._myu[:, col])
-        return myu_ir, di
+        return di
 
     def add_hidden_unit(self, weight, myu, sigma):
-        # print("before")
-        # print(self._wk)
-        # print(self._wk.shape)
-        # print(self._myu)
-        # print(self._myu.shape)
-        # print(self._sigma)
-        # print(self._sigma.shape)
-        self._wk = np.hstack([self._wk, weight.reshape(-1, 1)])
-        self._myu = np.hstack([self._myu, myu.reshape(-1, 1)])
-        self._sigma = np.append(self._sigma, sigma)
+        self._hidden_unit[self._unit_id] = Unit(
+            id = self._unit_id,
+            wk = weight,
+            myu = myu,
+            sigma = sigma
+        )
         self._h += 1
-        # self._sigma2 = np.append(self._sigma, sigma*sigma)
-        # print("after")
-        # print(self._wk)
-        # print(self._wk.shape)
-        # print(self._myu)
-        # print(self._myu.shape)
-        # print(self._sigma)
-        # print(self._sigma.shape)
+        self._unit_id += 1
         return
 
     def calc_PI(self):
@@ -118,10 +147,9 @@ class RBF:
             PI = np.hstack([PI, self._phi[hi]*tmp_a@tmp_b])
             tmp_a /= self._sigma[hi]
             PI = np.hstack([PI, self._phi[hi]*tmp_a*self._r2[hi]])
-
         return PI.T
 
-    def calc(self, input):
+    def calc_output(self, input):
         # 制御入力 u: (1, 1) = (1, nu)
         # システム出力 y: (1, 2) = (1, ny)
         # RBF入力ベクトル x: y*3 + u*1 = (1, 7) = (1, nx)
@@ -132,23 +160,34 @@ class RBF:
         # 平均 μ: (1, h) = (1, 5)
         # 分散 σ^2: (1, h) = (1, 5)
 
+        if self._h == 0:
+            return self._w0, None
+
+        self._gen_network_from_hidden_unit()
+
         print("input ",input.shape)
         print("myu ", self._myu.shape)
         # r, r2, phiは後（update_param）で使うので保存
-        self._r = np.apply_along_axis(self._calc_diff_from_myu, 0, self._myu, input)
-        self._r2 = np.apply_along_axis(self._calc_pow, 0, self._r)
+        self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
+        # self._r = np.tile(input, (self._h, 1)).T - self._myu # 上とどっちが早いか（多分上だけど）
+        self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
         print("r", self._r.shape)
         print("r2", self._r2.shape)
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
         print("phi ",self._phi.shape)
         print("w0 ", self._w0.shape)
         print("wk ", self._wk.shape)
+        print(self._wk)
+        # oはMRANのStep 5で使われる
+        # o = self._wk*np.tile(self._phi, (self._ny, 1)) # 下とどっちが早いか
+        o = deepcopy(self._wk)
+        for hi in range(self._h):
+            o[:, hi] *= self._phi[hi]
+        o = o/o.max()
         f = self._w0 + self._wk@self._phi
         print("f ", f.shape)
-        # a = np.array([5, 6, 7, 8, 9])
-        # b = np.array([0.92219369, 0.92219369, 0.92219369, 0.92219369, 0.92219369])
-        # print(a@b)
-        return f
+        # exit()
+        return f, o
 
 if __name__ == "__main__" :
     print('nothing to do')

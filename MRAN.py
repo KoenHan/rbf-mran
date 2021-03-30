@@ -4,7 +4,7 @@ from copy import deepcopy
 from RBF import RBF
 
 class MRAN:
-    def __init__(self, rbf, E1, E2, E3, Nw):
+    def __init__(self, rbf, E1, E2, E3, Nw, Sw):
         self._rbf = rbf
 
         # Step 1で使われるパラメータ
@@ -15,12 +15,17 @@ class MRAN:
         self._past_ei_norm_pow = []
 
         # Step 2で使われるパラメータ
-        self._kappa = 0.1
+        self._kappa = 0.1 # とりあえずの値
 
         # Step 4で使われるパラメータ
-        self._p0 = 0.1
-        self._P = np.eye(self._rbf.get_param_num())
-        self._q = 0.5
+        self._p0 = 0.1 # とりあえずの値
+        self._P = np.eye(self._rbf.get_param_num()) # とりあえずの値
+        self._q = 0.5 # とりあえずの値
+
+        # Step 5で使われるパラメータ
+        self._delta = 0.1 # とりあえずの値
+        self._Sw = Sw
+        self._past_o = []
 
     def _calc_error_criteria(self, input, f, yi):
         """
@@ -31,53 +36,65 @@ class MRAN:
                 満たしているならTrue，そうでないならFalse．
             ei(ndarray(np.float64)):
                 式3.4のei
-            myu_ir(ndarray(np.float64)):
+            myu_ir(ndarray(np.float64)):←いらないので消した
                 式3.6のmyu_ir
         """
         ei = yi - f
-        myu_ir, di = self._rbf.get_closest_unit_myu_and_dist(input)
+        di = self._rbf.get_closest_unit_myu_and_dist(input)
+        # myu_ir, di = self._rbf.get_closest_unit_myu_and_dist(input)
 
         self._past_ei_norm_pow.append(ei@ei)
         if len(self._past_ei_norm_pow) > self._Nw :
             self._past_ei_norm_pow.pop(0)
 
+        case = 0
         if np.linalg.norm(ei, ord=2) <= self._E1 :
-            return (False, ei, myu_ir)
+            case = 1
         elif sum(self._past_ei_norm_pow) <= self._E2_pow*self._Nw :
-            return (False, ei, myu_ir)
+            case = 2
         elif di <= self._E3 :
-            return (False, ei, myu_ir)
+            case = 3
 
-        return (True, None, None)
-    
-    def _add_new_rbf_hidden_unit(self, ei, input, myu_ir):
-        sigma = self._kappa*np.linalg.norm(input - myu_ir)
-        self._rbf.add_hidden_unit(ei, myu_ir, sigma)
+        return case, ei, di
+
+    def _listup_must_prune_unit(self):
+        # print("past o ", self._past_o)
+        # print("past o ", np.concatenate(self._past_o, dtype=np.float64))
+        # todo : 実装
         return
+    
+    def update_rbf(self, input1, input2, yi, debug_cnt):
+        input = np.array(input1 + input2, dtype=np.float64)
 
-    def update_rbf(self, input1, input2, yi):
-        input = np.array(input1, dtype=np.float64)
-        input = np.append(input, input2)
-        # input_size = input.shape[0]
-
-        f = self._rbf.calc(input)
+        f, o = self._rbf.calc_output(input)
+        # memo : 多分ここでやる必要がなくなる？
+        # self._past_o.append(o)
+        # if len(self._past_o) > self._Sw :
+        #     self._past_o.pop(0)
 
         # Step 1
-        satisfied, ei, myu_ir = self._calc_error_criteria(input, f, yi)
+        satisfied, ei, di = self._calc_error_criteria(input, f, yi)
+        print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
         z1 = self._rbf.get_one_unit_param_num()
-        if True :
-        # if satisfied :
+        # if debug_cnt%2 == 0 :
+        if satisfied == 0 :
+            print("satisfied!!!")
             # Step 2
-            self._add_new_rbf_hidden_unit(ei, input, myu_ir)
+            self._rbf.add_hidden_unit(ei, input, self._kappa*di)
 
             # Pの拡張
             zeros = np.zeros((z, z1), dtype=np.float64)
+            print("z ", z)
+            print(self._P.shape)
+            print(zeros.shape)
             self._P = np.hstack([self._P, zeros])
             tmp = zeros.T
             tmp = np.hstack([tmp, self._p0*np.eye(z1)])
             self._P = np.vstack([self._P, tmp])
+            print(self._P.shape)
         else :
+            print("not satisfied!!!")
             # Step 3
             PI = self._rbf.calc_PI()
             # Step 4
@@ -87,13 +104,14 @@ class MRAN:
             K = self._P@PI@np.linalg.inv(R + PI.T@self._P@PI)
             xi = xi + K@ei
             self._rbf.update_param_from_xi(xi)
+            print("xi ", xi)
 
             # Pの更新
             I = np.eye(z)
             self._P = (I - K@PI.T)@self._P + self._q*I
-            print(self._P.shape)
         
         # Step 5
+        prune_unit_id = self._listup_must_prune_unit()
 
         return
 
@@ -106,16 +124,16 @@ def main():
     queue_max_size = ny*past_sys_output_num
     past_sys_output = [] # 過去のシステム出力
     
-    h = 5 # 隠れニューロン数
+    h = 0 # 隠れニューロン数
     rbf = RBF(
         ny, h,
         input_size = past_sys_input_num*nu + past_sys_output_num*ny)
-    mran = MRAN(rbf, E1 = 1, E2 = 2, E3 = 3, Nw = 3)
+    mran = MRAN(rbf, E1 = 0.01, E2 = 0.01, E3 = 0.01, Nw = 3, Sw = 3)
 
     debug_cnt = 0
     with open('./data/data.txt', mode='r') as file:
         for line in file:
-            data = tuple(float(l) for l in line.split())
+            data = [float(l) for l in line.split()]
 
             yi = data[0:ny] # 今のシステム出力
             
@@ -125,7 +143,7 @@ def main():
 
             if len(past_sys_output) == queue_max_size :
                 # rbf.calc(past_sys_output, past_sys_input)
-                mran.update_rbf(past_sys_output, past_sys_input, yi)
+                mran.update_rbf(past_sys_output, past_sys_input, yi, debug_cnt)
 
                 for i in range(ny):
                     past_sys_output.pop(0)
@@ -137,10 +155,11 @@ def main():
 
             # for debug
             print(debug_cnt)
-            if debug_cnt == 3 :
+            if debug_cnt == 10:
                 return
             debug_cnt += 1
     return
 
 if __name__ == "__main__" :
+    np.set_printoptions(precision=10, suppress=True)
     main()
