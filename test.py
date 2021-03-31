@@ -21,3 +21,11 @@ if __name__=="__main__":
     print(a < c)
     print(np.all(a<c))
     print(d < c)
+
+    def hello():
+        print('hello world')
+        print(s)
+    s = 'goodbye'
+
+    
+    hello()

@@ -16,6 +16,8 @@ class Unit:
         self.myu = myu
         self.sigma = sigma
 
+        self.past_o = []
+
 class RBF:
     """
     ネットワークパラメータはニューロンごとで管理し，計算時に行列を構築する
@@ -31,9 +33,11 @@ class RBF:
         self._myu = None
         self._sigma = None
 
-        self._unit_id = self._h # 隠れ層ニューロン用id
-        self._hidden_unit = {} # 隠れ層ニューロン保存用
-        if self._h :
+        self._unit_id = self._h # 隠れニューロン用id
+        self._hidden_unit = [] # 隠れニューロン保存用
+        # self._hidden_unit = {} # 隠れニューロン保存用
+        # self._hi2id = [] # hi個目の隠れニューロンのidの対応マップ←これ使わなくてもできそう
+        if self._h : # 基本ここで作成しないけど一応書いておく
             for hi in range(self._h):
                 self._hidden_unit.append(Unit(
                     id = hi,
@@ -55,26 +59,14 @@ class RBF:
         wk = []
         myu = []
         sigma = []
-        for unit in self._hidden_unit.values():
+        for id in self._hi2id:
+            unit = self._hidden_unit[id]
             wk.append(unit.wk)
             myu.append(unit.myu)
             sigma.append(unit.sigma)
         self._wk = np.vstack(wk).T
         self._myu = np.vstack(myu).T
         self._sigma = np.array(sigma, np.float64)
-        return
-
-    def update_param_from_xi(self, xi):
-        self._w0 = xi[:self._ny]
-        z1 = self.get_one_unit_param_num()
-        left = self._ny
-        for unit in self._hidden_unit.values():
-            unit.wk = xi[left:left+self._ny]
-            left += self._ny
-            unit.myu = xi[left:left+self._input_size]
-            left += self._input_size
-            unit.sigma = xi[left]
-            left += 1
         return
 
     def gen_xi(self):
@@ -84,6 +76,20 @@ class RBF:
             xi = np.hstack([xi, self._wk[:, hi], self._myu[:, hi], self._sigma[hi]])
 
         return xi
+
+    def update_param_from_xi(self, xi):
+        self._w0 = xi[:self._ny]
+        left = self._ny
+        # for unit in self._hidden_unit.values():
+        for id in self._hi2id:
+            unit = self._hidden_unit[id]
+            unit.wk = xi[left:left+self._ny]
+            left += self._ny
+            unit.myu = xi[left:left+self._input_size]
+            left += self._input_size
+            unit.sigma = xi[left]
+            left += 1
+        return
     
     def get_param_num(self):
         """
@@ -125,8 +131,39 @@ class RBF:
             myu = myu,
             sigma = sigma
         )
+        self._hi2id.append(self._unit_id)
         self._h += 1
         self._unit_id += 1
+        return
+    
+    def prune_unit(self, o, Sw, delta):
+        """
+        隠れニューロンの削除
+        """
+        def must_prune(past_o):
+            for p_o in past_o:
+                if np.all(p_o >= delta) :
+                    return False
+            return True
+
+        print(o)
+        must_prune_unit = []
+        for hi in range(o.shape[1]) :
+            unit = self._hidden_unit[self._hi2id[hi]]
+            unit.past_o.append(o[:, hi])
+            if len(unit.past_o) > Sw :
+                unit.past_o.pop(0)
+            if must_prune(unit.past_o) :
+                must_prune_unit.append(unit.id)
+        print('prune unit')
+        print(must_prune_unit)
+        print(self._hidden_unit)
+        for unit_id in must_prune_unit :
+            del self._hidden_unit[unit_id]
+            self._hi2id.remove(unit_id)
+            self._h -= 1
+        print(self._hidden_unit)
+
         return
 
     def calc_PI(self):
@@ -184,9 +221,9 @@ class RBF:
         for hi in range(self._h):
             o[:, hi] *= self._phi[hi]
         o = o/o.max()
+        
         f = self._w0 + self._wk@self._phi
         print("f ", f.shape)
-        # exit()
         return f, o
 
 if __name__ == "__main__" :

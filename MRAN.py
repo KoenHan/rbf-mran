@@ -57,20 +57,18 @@ class MRAN:
 
         return case, ei, di
 
-    def _listup_must_prune_unit(self):
-        # print("past o ", self._past_o)
-        # print("past o ", np.concatenate(self._past_o, dtype=np.float64))
-        # todo : 実装
-        return
+    # def _prune_unit(self, o, Sw, ):
+    #     # print("past o ", self._past_o)
+    #     # print("past o ", np.concatenate(self._past_o, dtype=np.float64))
+    #     # todo : 実装
+    #     for hi, unit in enumerate(self._hidden_unit.values()):
+    #         unit.past_o.append(o[:, hi])
+    #     return
     
     def update_rbf(self, input1, input2, yi, debug_cnt):
         input = np.array(input1 + input2, dtype=np.float64)
 
         f, o = self._rbf.calc_output(input)
-        # memo : 多分ここでやる必要がなくなる？
-        # self._past_o.append(o)
-        # if len(self._past_o) > self._Sw :
-        #     self._past_o.pop(0)
 
         # Step 1
         satisfied, ei, di = self._calc_error_criteria(input, f, yi)
@@ -111,7 +109,10 @@ class MRAN:
             self._P = (I - K@PI.T)@self._P + self._q*I
         
         # Step 5
-        prune_unit_id = self._listup_must_prune_unit()
+        # self._prune_unit(o, self._Sw)
+        if o is not None:
+            self._rbf.prune_unit(o, self._Sw, self._delta)
+        # todo : Pの要素の減らし方
 
         return
 
