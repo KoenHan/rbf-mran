@@ -10,22 +10,7 @@ class Test:
         return self.a, self.b, self.c
 
 if __name__=="__main__":
-    # test = Test()
-    # print(type(test.get_all_param()))
-    a = np.array([1, 2, 3, 40, 5])
-    b = np.array([10, 10, 10, 10, 10])
-    c = 10
-    d = np.tile(a, (5, 1))
-    print(a < b)
-    print(np.all(a<b))
-    print(a < c)
-    print(np.all(a<c))
-    print(d < c)
-
-    def hello():
-        print('hello world')
-        print(s)
-    s = 'goodbye'
-
-    
-    hello()
+    a = np.array([i for i in range(30)]).reshape(3, 10)
+    print(a)
+    a = np.delete(a, slice(3,5), 1)
+    print(a)

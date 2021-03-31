@@ -6,6 +6,7 @@ from RBF import RBF
 class MRAN:
     def __init__(self, rbf, E1, E2, E3, Nw, Sw):
         self._rbf = rbf
+        self._rbf_ny = self._rbf.get_ny()
 
         # Step 1で使われるパラメータ
         self._E1 = E1
@@ -26,6 +27,7 @@ class MRAN:
         self._delta = 0.1 # とりあえずの値
         self._Sw = Sw
         self._past_o = []
+        self._z1 = self._rbf.get_one_unit_param_num()
 
     def _calc_error_criteria(self, input, f, yi):
         """
@@ -74,7 +76,6 @@ class MRAN:
         satisfied, ei, di = self._calc_error_criteria(input, f, yi)
         print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
-        z1 = self._rbf.get_one_unit_param_num()
         # if debug_cnt%2 == 0 :
         if satisfied == 0 :
             print("satisfied!!!")
@@ -82,13 +83,13 @@ class MRAN:
             self._rbf.add_hidden_unit(ei, input, self._kappa*di)
 
             # Pの拡張
-            zeros = np.zeros((z, z1), dtype=np.float64)
+            zeros = np.zeros((z, self._z1), dtype=np.float64)
             print("z ", z)
             print(self._P.shape)
             print(zeros.shape)
             self._P = np.hstack([self._P, zeros])
             tmp = zeros.T
-            tmp = np.hstack([tmp, self._p0*np.eye(z1)])
+            tmp = np.hstack([tmp, self._p0*np.eye(self._z1)])
             self._P = np.vstack([self._P, tmp])
             print(self._P.shape)
         else :
@@ -111,8 +112,13 @@ class MRAN:
         # Step 5
         # self._prune_unit(o, self._Sw)
         if o is not None:
-            self._rbf.prune_unit(o, self._Sw, self._delta)
-        # todo : Pの要素の減らし方
+            pruned_unit = self._rbf.prune_unit(o, self._Sw, self._delta)
+            # Pの調整
+            for ui in pruned_unit:
+                start = self._rbf_ny + self._z1*ui
+                self._P = np.delete(
+                    np.delete(self._P, slice(start, start+self._z1), 0),
+                    slice(start, start+self._z1), 1)
 
         return
 
@@ -162,5 +168,5 @@ def main():
     return
 
 if __name__ == "__main__" :
-    np.set_printoptions(precision=10, suppress=True)
+    np.set_printoptions(precision=6, suppress=True)
     main()

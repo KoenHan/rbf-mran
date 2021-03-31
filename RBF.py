@@ -59,8 +59,9 @@ class RBF:
         wk = []
         myu = []
         sigma = []
-        for id in self._hi2id:
-            unit = self._hidden_unit[id]
+        # for id in self._hi2id:
+        #     unit = self._hidden_unit[id]
+        for unit in self._hidden_unit:
             wk.append(unit.wk)
             myu.append(unit.myu)
             sigma.append(unit.sigma)
@@ -80,9 +81,9 @@ class RBF:
     def update_param_from_xi(self, xi):
         self._w0 = xi[:self._ny]
         left = self._ny
-        # for unit in self._hidden_unit.values():
-        for id in self._hi2id:
-            unit = self._hidden_unit[id]
+        # for id in self._hi2id:
+        #     unit = self._hidden_unit[id]
+        for unit in self._hidden_unit:
             unit.wk = xi[left:left+self._ny]
             left += self._ny
             unit.myu = xi[left:left+self._input_size]
@@ -91,13 +92,16 @@ class RBF:
             left += 1
         return
     
+    def get_ny(self):
+        return self._ny
+    
     def get_param_num(self):
         """
         更新できるパラメータの数 = count(w0) + count(wk) + count(myu) + count(sigma)
         """
         if self._h == 0:
             return self._ny
-        return self._w0.size + self._wk.size + self._myu.size + self._sigma.size
+        return self._ny + self._wk.size + self._myu.size + self._sigma.size
 
     def get_one_unit_param_num(self):
         """
@@ -125,13 +129,19 @@ class RBF:
         return di
 
     def add_hidden_unit(self, weight, myu, sigma):
-        self._hidden_unit[self._unit_id] = Unit(
+        self._hidden_unit.append(Unit(
             id = self._unit_id,
             wk = weight,
             myu = myu,
             sigma = sigma
-        )
-        self._hi2id.append(self._unit_id)
+        ))
+        # self._hidden_unit[self._unit_id] = Unit(
+        #     id = self._unit_id,
+        #     wk = weight,
+        #     myu = myu,
+        #     sigma = sigma
+        # )
+        # self._hi2id.append(self._unit_id)
         self._h += 1
         self._unit_id += 1
         return
@@ -146,25 +156,27 @@ class RBF:
                     return False
             return True
 
-        print(o)
+        # 削除すべきニューロンのindexの列挙
         must_prune_unit = []
         for hi in range(o.shape[1]) :
-            unit = self._hidden_unit[self._hi2id[hi]]
+            # unit = self._hidden_unit[self._hi2id[hi]]
+            unit = self._hidden_unit[hi]
             unit.past_o.append(o[:, hi])
             if len(unit.past_o) > Sw :
                 unit.past_o.pop(0)
             if must_prune(unit.past_o) :
-                must_prune_unit.append(unit.id)
-        print('prune unit')
-        print(must_prune_unit)
-        print(self._hidden_unit)
-        for unit_id in must_prune_unit :
-            del self._hidden_unit[unit_id]
-            self._hi2id.remove(unit_id)
-            self._h -= 1
-        print(self._hidden_unit)
+                # must_prune_unit.append(unit.id)
+                must_prune_unit.append(hi)
+        # for unit_id in must_prune_unit :
+        #     del self._hidden_unit[unit_id]
+        #     self._hi2id.remove(unit_id)
 
-        return
+        # 削除すべきニューロンの削除
+        for ui in must_prune_unit:
+            del self._hidden_unit[ui]
+            self._h -= 1
+
+        return must_prune_unit
 
     def calc_PI(self):
         """
