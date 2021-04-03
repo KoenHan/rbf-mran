@@ -22,9 +22,10 @@ class RBF:
     """
     ネットワークパラメータはニューロンごとで管理し，計算時に行列を構築する
     """
-    def __init__(self, ny, h, input_size):
+    def __init__(self, nu, ny, init_h, input_size):
+        self._nu = nu
         self._ny = ny
-        self._h = h
+        self._h = init_h
         self._input_size = input_size
 
         # ネットワークパラメータ
@@ -68,7 +69,6 @@ class RBF:
         self._wk = np.vstack(wk).T
         self._myu = np.vstack(myu).T
         self._sigma = np.array(sigma, np.float64)
-        return
 
     def gen_xi(self):
         xi = deepcopy(self._w0)
@@ -90,10 +90,9 @@ class RBF:
             left += self._input_size
             unit.sigma = xi[left]
             left += 1
-        return
     
-    def get_ny(self):
-        return self._ny
+    # def get_ny(self):
+    #     return self._ny
     
     def get_param_num(self):
         """
@@ -144,7 +143,6 @@ class RBF:
         # self._hi2id.append(self._unit_id)
         self._h += 1
         self._unit_id += 1
-        return
     
     def prune_unit(self, o, Sw, delta):
         """
@@ -172,6 +170,7 @@ class RBF:
         #     self._hi2id.remove(unit_id)
 
         # 削除すべきニューロンの削除
+        must_prune_unit.reverse()
         for ui in must_prune_unit:
             del self._hidden_unit[ui]
             self._h -= 1
@@ -198,7 +197,7 @@ class RBF:
             PI = np.hstack([PI, self._phi[hi]*tmp_a*self._r2[hi]])
         return PI.T
 
-    def calc_output(self, input):
+    def calc_f(self, input):
         # 制御入力 u: (1, 1) = (1, nu)
         # システム出力 y: (1, 2) = (1, ny)
         # RBF入力ベクトル x: y*3 + u*1 = (1, 7) = (1, nx)
@@ -210,33 +209,40 @@ class RBF:
         # 分散 σ^2: (1, h) = (1, 5)
 
         if self._h == 0:
-            return self._w0, None
+            return self._w0
 
         self._gen_network_from_hidden_unit()
 
-        print("input ",input.shape)
-        print("myu ", self._myu.shape)
+        # print("input ",input.shape)
+        # print("myu ", self._myu.shape)
         # r, r2, phiは後（update_param）で使うので保存
         self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
         # self._r = np.tile(input, (self._h, 1)).T - self._myu # 上とどっちが早いか（多分上だけど）
         self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
-        print("r", self._r.shape)
-        print("r2", self._r2.shape)
+        # print("r", self._r.shape)
+        # print("r2", self._r2.shape)
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
-        print("phi ",self._phi.shape)
-        print("w0 ", self._w0.shape)
-        print("wk ", self._wk.shape)
-        print(self._wk)
+        # print("phi ",self._phi.shape)
+        # print("w0 ", self._w0.shape)
+        # print("wk ", self._wk.shape)
+        # print(self._wk)
+        f = self._w0 + self._wk@self._phi
+        # print("f ", f.shape)
+        return f
+    
+    def calc_o(self):
         # oはMRANのStep 5で使われる
+        # todo : o.max()が0担ったときの処理を書く
+        # print('calc_o')
+        # print(self._h)
+        # print(self._wk)
+        if self._h == 0:
+            return None
         # o = self._wk*np.tile(self._phi, (self._ny, 1)) # 下とどっちが早いか
         o = deepcopy(self._wk)
         for hi in range(self._h):
             o[:, hi] *= self._phi[hi]
-        o = o/o.max()
-        
-        f = self._w0 + self._wk@self._phi
-        print("f ", f.shape)
-        return f, o
+        return o/o.max()
 
 if __name__ == "__main__" :
     print('nothing to do')
