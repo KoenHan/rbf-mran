@@ -124,6 +124,8 @@ class RBF_MRAN:
                     np.delete(self._P, slice(start, start+self._z1), 0),
                     slice(start, start+self._z1), 1)
 
+        # todo : 学習している最中の誤差（式3.16）の算出
+
     def train(self, file_name):
         past_sys_input = [] # 過去のシステム入力
         past_sys_output = [] # 過去のシステム出力

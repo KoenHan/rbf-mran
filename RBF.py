@@ -36,8 +36,6 @@ class RBF:
 
         self._unit_id = self._h # 隠れニューロン用id
         self._hidden_unit = [] # 隠れニューロン保存用
-        # self._hidden_unit = {} # 隠れニューロン保存用
-        # self._hi2id = [] # hi個目の隠れニューロンのidの対応マップ←これ使わなくてもできそう
         if self._h : # 基本ここで作成しないけど一応書いておく
             for hi in range(self._h):
                 self._hidden_unit.append(Unit(
@@ -62,8 +60,6 @@ class RBF:
         wk = []
         myu = []
         sigma = []
-        # for id in self._hi2id:
-        #     unit = self._hidden_unit[id]
         for unit in self._hidden_unit:
             wk.append(unit.wk)
             myu.append(unit.myu)
@@ -148,17 +144,12 @@ class RBF:
         # 削除すべきニューロンのindexの列挙
         must_prune_unit = []
         for hi in range(o.shape[1]) :
-            # unit = self._hidden_unit[self._hi2id[hi]]
             unit = self._hidden_unit[hi]
             unit.past_o.append(o[:, hi])
             if len(unit.past_o) > Sw :
                 unit.past_o.pop(0)
             if must_prune(unit.past_o) :
-                # must_prune_unit.append(unit.id)
                 must_prune_unit.append(hi)
-        # for unit_id in must_prune_unit :
-        #     del self._hidden_unit[unit_id]
-        #     self._hi2id.remove(unit_id)
 
         # 削除すべきニューロンの削除
         must_prune_unit.reverse()
@@ -204,29 +195,16 @@ class RBF:
 
         self._gen_network_from_hidden_unit()
 
-        # print("input ",input.shape)
-        # print("myu ", self._myu.shape)
         # r, r2, phiは後（update_param）で使うので保存
         self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
         # self._r = np.tile(input, (self._h, 1)).T - self._myu # 上とどっちが早いか（多分上だけど）
         self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
-        # print("r", self._r.shape)
-        # print("r2", self._r2.shape)
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
-        # print("phi ",self._phi.shape)
-        # print("w0 ", self._w0.shape)
-        # print("wk ", self._wk.shape)
-        # print(self._wk)
         f = self._w0 + self._wk@self._phi
-        # print("f ", f.shape)
         return f
     
     def calc_o(self):
         # oはMRANのStep 5で使われる
-        # todo : o.max()が0担ったときの処理を書く
-        # print('calc_o')
-        # print(self._h)
-        # print(self._wk)
         if self._h == 0:
             return None
         # o = self._wk*np.tile(self._phi, (self._ny, 1)) # 下とどっちが早いか
