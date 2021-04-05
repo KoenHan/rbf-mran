@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 def siso(pre_x, pre_u):
-    y = 29/40*np.sin(16*pre_u + 8*pre_x/(3 + 4*pre_u**2 + 4*pre_x**2))
+    y = 29/40*np.sin((16*pre_u + 8*pre_x)/(3 + 4*pre_u**2 + 4*pre_x**2))
     y += 0.2*(pre_u + pre_x)
     return y
 

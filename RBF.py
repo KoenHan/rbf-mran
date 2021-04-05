@@ -29,7 +29,7 @@ class RBF:
         self._input_size = input_size
 
         # ネットワークパラメータ
-        self._w0 = np.array([1 for _ in range(self._ny)], dtype=np.float64) # 隠れニューロン0から始まるからバイアスはニューロンのパラメータではない
+        self._w0 = np.array([0 for _ in range(self._ny)], dtype=np.float64) # 隠れニューロン0から始まるからバイアスはニューロンのパラメータではない
         self._wk = None
         self._myu = None
         self._sigma = None
@@ -55,6 +55,8 @@ class RBF:
         self._r = None
         self._r2 = None
         self._phi = None
+
+        self.debug_cnt = 0
     
     def _gen_network_from_hidden_unit(self):
         wk = []
@@ -66,6 +68,7 @@ class RBF:
             wk.append(unit.wk)
             myu.append(unit.myu)
             sigma.append(unit.sigma)
+        self.debug_cnt += 1
         self._wk = np.vstack(wk).T
         self._myu = np.vstack(myu).T
         self._sigma = np.array(sigma, np.float64)
@@ -81,8 +84,6 @@ class RBF:
     def update_param_from_xi(self, xi):
         self._w0 = xi[:self._ny]
         left = self._ny
-        # for id in self._hi2id:
-        #     unit = self._hidden_unit[id]
         for unit in self._hidden_unit:
             unit.wk = xi[left:left+self._ny]
             left += self._ny
@@ -90,9 +91,6 @@ class RBF:
             left += self._input_size
             unit.sigma = xi[left]
             left += 1
-    
-    # def get_ny(self):
-    #     return self._ny
     
     def get_param_num(self):
         """
@@ -134,13 +132,6 @@ class RBF:
             myu = myu,
             sigma = sigma
         ))
-        # self._hidden_unit[self._unit_id] = Unit(
-        #     id = self._unit_id,
-        #     wk = weight,
-        #     myu = myu,
-        #     sigma = sigma
-        # )
-        # self._hi2id.append(self._unit_id)
         self._h += 1
         self._unit_id += 1
     

@@ -22,20 +22,33 @@ class RBF_MRAN:
         self._past_ei_norm_pow = []
 
         # Step 2で使われるパラメータ
-        self._kappa = 0.1 # とりあえずの値
+        self._kappa = 1.0 # とりあえずの値
 
         # Step 4で使われるパラメータ
         #  全部とりあえずの値
-        self._p0 = 0.1
+        self._p0 = 1.0
         self._P = np.eye(self._rbf.get_param_num())
-        self._q = 0.5
+        self._q = 0.1
         self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ
 
         # Step 5で使われるパラメータ
-        self._delta = 0.1 # とりあえずの値
+        self._delta = 0.0001 # p.55
         self._Sw = Sw
         self._past_o = []
         self._z1 = self._rbf.get_one_unit_param_num()
+
+        # p.55の実験に必要
+        self._eps_max = 1.2
+        self._eps_min = 0.6
+        self._gamma = 0.997
+        self._gamma_n = 1
+
+    def calc_E3(self):
+        """
+        p.38の実験のE3の計算
+        """
+        self._gamma_n *= self._gamma
+        return max(self._eps_max*self._gamma_n, self._eps_min)
 
     def _calc_error_criteria(self, input, f, yi):
         """
@@ -61,23 +74,21 @@ class RBF_MRAN:
             case = 1
         elif sum(self._past_ei_norm_pow) <= self._E2_pow*self._Nw :
             case = 2
-        elif di <= self._E3 :
+        # elif di <= self._E3 :
+        elif di <= self.calc_E3(): # p.38の実験に合わせた
             case = 3
 
         return case, ei, di
     
-    def update_rbf(self, input, yi, debug_cnt):
+    def update_rbf(self, input, yi, cnt):
         f = self._rbf.calc_f(input)
-        # todo:
-        # 新しいニューロンを追加する前にoを求めるのか
-        # 追加したあとに求めるのかを判明する
         o = self._rbf.calc_o()
 
         # Step 1
         satisfied, ei, di = self._calc_error_criteria(input, f, yi)
         # print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
-        # if debug_cnt%2 == 0 :
+        # if cnt%2 == 0 :
         if satisfied == 0 :
             # print("satisfied!!!")
             # Step 2
@@ -117,7 +128,7 @@ class RBF_MRAN:
         past_sys_input = [] # 過去のシステム入力
         past_sys_output = [] # 過去のシステム出力
         
-        debug_cnt = 0
+        cnt = 0
         with open(file_name, mode='r') as file:
             for line in file:
                 data = [float(l) for l in line.split()]
@@ -125,9 +136,8 @@ class RBF_MRAN:
                 yi = data[:self._rbf_ny] # 今のシステム出力
 
                 if len(past_sys_output) == self._queue_max_size :
-                    # debug_cntは必要なくなったら消していい
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
-                    self.update_rbf(input, yi, debug_cnt)
+                    self.update_rbf(input, yi, cnt)
 
                     for i in range(self._rbf_ny):
                         past_sys_output.pop(0)
@@ -138,10 +148,10 @@ class RBF_MRAN:
                 past_sys_input = data[-self._rbf_nu:]
 
                 # for debug
-                # print(debug_cnt)
-                # if debug_cnt == 10:
+                # print(cnt)
+                # if cnt == 10:
                 #     return
-                debug_cnt += 1
+                cnt += 1
     
     def val(self, file_name):
         past_sys_input = [] # 過去のシステム入力
@@ -149,7 +159,7 @@ class RBF_MRAN:
 
         val_res = []
         
-        debug_cnt = 0
+        cnt = 0
         with open(file_name, mode='r') as file:
             for line in file:
                 data = [float(l) for l in line.split()]
@@ -157,7 +167,7 @@ class RBF_MRAN:
                 yi = data[:self._rbf_ny] # 今のシステム出力
 
                 if len(past_sys_output) == self._queue_max_size :
-                    # debug_cntは必要なくなったら消していい
+                    # cntは必要なくなったら消していい
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
                     f = self._rbf.calc_f(input)
                     val_res.append(f)
@@ -171,10 +181,10 @@ class RBF_MRAN:
                 past_sys_input = data[-self._rbf_nu:]
 
                 # for debug
-                # print(debug_cnt)
-                # if debug_cnt == 10:
+                # print(cnt)
+                # if cnt == 10:
                 #     return
-                debug_cnt += 1
+                cnt += 1
         
         # 結果の保存
         # todo : ちゃんと書く
@@ -188,10 +198,9 @@ if __name__ == "__main__" :
         nu=1, # システム入力(制御入力)の次元
         ny=1, # システム出力ベクトルの次元
         past_sys_input_num=1, # 過去のシステム入力保存数
-        past_sys_output_num=3, # 過去のシステム出力保存数
+        past_sys_output_num=1, # 過去のシステム出力保存数
         init_h=0, # スタート時の隠れニューロン数
-        E1=0.01, E2=0.01, E3=0.01, Nw=3, Sw=3)
+        E1=0.01, E2=0.01, E3=1.2, Nw=48, Sw=48)
 
     rbf_mran.train('./data/train.txt')
     rbf_mran.val('./data/val.txt')
-    print(rbf_mran._rbf._h)
