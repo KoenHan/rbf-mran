@@ -7,11 +7,10 @@ class Unit:
     各ニューロンに関連するパラメータをただの行列として保持すると，
     MRANのStep 5でニューロンを消す時にめんどくさくなるのでこのクラスは必要
     """
-    def __init__(self, id, wk, myu, sigma):
+    def __init__(self, wk, myu, sigma):
         """
         このクラスのメンバー変数はprivate扱いしない
         """
-        self.id = id
         self.wk = wk
         self.myu = myu
         self.sigma = sigma
@@ -30,31 +29,30 @@ class RBF:
 
         # ネットワークパラメータ
         self._w0 = np.array([0 for _ in range(self._ny)], dtype=np.float64) # 隠れニューロン0から始まるからバイアスはニューロンのパラメータではない
-        self._wk = None
-        self._myu = None
+        self._wk = None # (ny, h)
+        self._myu = None # (input_size, h)
         self._sigma = None
-
-        self._unit_id = self._h # 隠れニューロン用id
+        
         self._hidden_unit = [] # 隠れニューロン保存用
         if self._h : # 基本ここで作成しないけど一応書いておく
             for hi in range(self._h):
                 self._hidden_unit.append(Unit(
-                    id = hi,
                     wk = np.array([k for k in range(self._ny)], dtype=np.float64),
                     myu = np.array([0 for _ in range(self._input_size)], dtype=np.float64),
                     sigma = 10 + hi
                 ))
             self._gen_network_from_hidden_unit()
-        # self._sigma = np.array([10+i for i in range(self._h)], dtype=np.float64)
-        # self._myu = np.array([0 for _ in range(self._input_size*self._h)], dtype=np.float64).reshape(self._input_size, self._h)
-        # self._wk = np.array([k for k in range(self._ny*self._h)], dtype=np.float64).reshape(self._ny, self._h)
 
-        # あとで使うので保存用
+        # あとで使うための宣言
         self._r = None
         self._r2 = None
         self._phi = None
 
-        self.debug_cnt = 0
+        # 隠れニューロン数履歴保存用
+        self._h_hist = []
+
+    def get_h(self):
+        return self._h
     
     def _gen_network_from_hidden_unit(self):
         wk = []
@@ -64,7 +62,6 @@ class RBF:
             wk.append(unit.wk)
             myu.append(unit.myu)
             sigma.append(unit.sigma)
-        self.debug_cnt += 1
         self._wk = np.vstack(wk).T
         self._myu = np.vstack(myu).T
         self._sigma = np.array(sigma, np.float64)
@@ -123,13 +120,11 @@ class RBF:
 
     def add_hidden_unit(self, weight, myu, sigma):
         self._hidden_unit.append(Unit(
-            id = self._unit_id,
             wk = weight,
             myu = myu,
             sigma = sigma
         ))
         self._h += 1
-        self._unit_id += 1
     
     def prune_unit(self, o, Sw, delta):
         """
@@ -147,7 +142,7 @@ class RBF:
             unit = self._hidden_unit[hi]
             unit.past_o.append(o[:, hi])
             if len(unit.past_o) > Sw :
-                unit.past_o.pop(0)
+                del unit.past_o[0]
             if must_prune(unit.past_o) :
                 must_prune_unit.append(hi)
 
@@ -162,10 +157,6 @@ class RBF:
     def calc_PI(self):
         """
         MRANのStep 3で使われるΠの計算
-
-        Returns:
-            -(ndarray(np.float64)):
-                式3.8のΠ
         """
         I = np.eye(self._ny, dtype=np.float64)
         PI = deepcopy(I)
@@ -180,16 +171,6 @@ class RBF:
         return PI.T
 
     def calc_f(self, input):
-        # 制御入力 u: (1, 1) = (1, nu)
-        # システム出力 y: (1, 2) = (1, ny)
-        # RBF入力ベクトル x: y*3 + u*1 = (1, 7) = (1, nx)
-        # RBF出力ベクトル f: y*1 = (1, 2) = (1, ny)
-        # 隠れニューロン数 h = 5
-        # バイアス w0: f*1 = (1, ny)
-        # 重み wk: h*ny = (5, 2)
-        # 平均 μ: (1, h) = (1, 5)
-        # 分散 σ^2: (1, h) = (1, 5)
-
         if self._h == 0:
             return self._w0
 
@@ -213,5 +194,3 @@ class RBF:
             o[:, hi] *= self._phi[hi]
         return o/o.max()
 
-if __name__ == "__main__" :
-    print('nothing to do')

@@ -43,6 +43,10 @@ class RBF_MRAN:
         self._gamma = 0.997
         self._gamma_n = 1
 
+        self._ei_abs_queue = [] # 学習中の誤差計算
+        self._Id_hist = [] # 学習中の誤差履歴
+        self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
+
     def calc_E3(self):
         """
         p.38の実験のE3の計算
@@ -59,33 +63,36 @@ class RBF_MRAN:
                 満たしているならTrue，そうでないならFalse．
             ei(ndarray(np.float64)):
                 式3.4のei
+            ei_norm:
+
             myu_ir(ndarray(np.float64)):←いらないので消した
                 式3.6のmyu_ir
         """
         ei = yi - f
+        ei_norm = np.linalg.norm(ei, ord=2)
         di = self._rbf.get_closest_unit_myu_and_dist(input)
 
         self._past_ei_norm_pow.append(ei@ei)
         if len(self._past_ei_norm_pow) > self._Nw :
-            self._past_ei_norm_pow.pop(0)
+            del self._past_ei_norm_pow[0]
 
         case = 0
-        if np.linalg.norm(ei, ord=2) <= self._E1 :
+        if ei_norm <= self._E1 :
             case = 1
         elif sum(self._past_ei_norm_pow) <= self._E2_pow*self._Nw :
             case = 2
         # elif di <= self._E3 :
-        elif di <= self.calc_E3(): # p.38の実験に合わせた
+        elif di <= self.calc_E3(): # p.55の実験に合わせた
             case = 3
 
-        return case, ei, di
+        return case, ei, ei_norm, di
     
     def update_rbf(self, input, yi, cnt):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
 
         # Step 1
-        satisfied, ei, di = self._calc_error_criteria(input, f, yi)
+        satisfied, ei, ei_norm, di = self._calc_error_criteria(input, f, yi)
         # print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
         # if cnt%2 == 0 :
@@ -124,7 +131,15 @@ class RBF_MRAN:
                     np.delete(self._P, slice(start, start+self._z1), 0),
                     slice(start, start+self._z1), 1)
 
-        # todo : 学習している最中の誤差（式3.16）の算出
+        # 学習中の誤差（式3.16）の算出及び保存
+        self._ei_abs_queue.append(ei_norm)
+        if len(self._ei_abs_queue) > self._Nw:
+            del self._ei_abs_queue[0]
+            self._Id_hist.append(sum(self._ei_abs_queue)/self._Nw)
+        # 学習中の隠れニューロン数保存
+        self._h_hist.append(self._rbf.get_h())
+
+        # todo : ネットワークパラメータを何かのファイルに保存
 
     def train(self, file_name):
         past_sys_input = [] # 過去のシステム入力
@@ -142,18 +157,21 @@ class RBF_MRAN:
                     self.update_rbf(input, yi, cnt)
 
                     for i in range(self._rbf_ny):
-                        past_sys_output.pop(0)
+                        del past_sys_output[0]
                         past_sys_output.append(data[i])
                 else :
                     past_sys_output.extend(yi)
                 
                 past_sys_input = data[-self._rbf_nu:]
 
-                # for debug
-                # print(cnt)
-                # if cnt == 10:
-                #     return
                 cnt += 1
+
+        # 誤差履歴，隠れニューロン数履歴の保存
+        with open('./model/history/error.txt', mode='w') as f:
+            f.write(str(self._Nw)+'\n')
+            f.write('\n'.join(map(str, self._Id_hist))+'\n')
+        with open('./model/history/h.txt', mode='w') as f:
+            f.write('\n'.join(map(str, self._h_hist))+'\n')
     
     def val(self, file_name):
         past_sys_input = [] # 過去のシステム入力
@@ -175,22 +193,18 @@ class RBF_MRAN:
                     val_res.append(f)
 
                     for i in range(self._rbf_ny):
-                        past_sys_output.pop(0)
+                        del past_sys_output[0]
                         past_sys_output.append(data[i])
                 else :
                     past_sys_output.extend(yi)
                 
                 past_sys_input = data[-self._rbf_nu:]
 
-                # for debug
-                # print(cnt)
-                # if cnt == 10:
-                #     return
                 cnt += 1
         
         # 結果の保存
-        # todo : ちゃんと書く
-        with open('./data/val_res.txt', mode='w') as f:
+        # memo : ちゃんと書きたい
+        with open('./data/pre_res.txt', mode='w') as f:
             for res in val_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
 

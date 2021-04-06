@@ -9,7 +9,7 @@ def siso(pre_x, pre_u):
 if __name__ == "__main__":
     pre_x = 0
     pre_u = -1
-    data_len = 2500
+    data_len = 5000
     x = 0
     file_name = ['./data/train.txt', './data/val.txt']
     for fn in file_name :
