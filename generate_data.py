@@ -2,6 +2,9 @@ import numpy as np
 import random
 
 def siso(pre_x, pre_u):
+    """
+    p.54の式3.15
+    """
     y = 29/40*np.sin((16*pre_u + 8*pre_x)/(3 + 4*pre_u**2 + 4*pre_x**2))
     y += 0.2*(pre_u + pre_x)
     return y
@@ -16,8 +19,6 @@ if __name__ == "__main__":
         with open(fn, mode='w') as f:
             for n in range(data_len):
                 s = []
-                # for _ in range(3):
-                #     s.append(str(random.randint(0, 10)/10))
                 if n :
                     x = siso(pre_x, pre_u)
                 u = random.uniform(-1, 1)

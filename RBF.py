@@ -163,7 +163,7 @@ class RBF:
 
         for hi in range(self._h):
             PI = np.hstack([PI, self._phi[hi]*I])
-            tmp_a = (2*self._wk[:, hi]/self._sigma[hi]*self._sigma[hi]).reshape(-1, 1)
+            tmp_a = (2*self._wk[:, hi]/(self._sigma[hi]*self._sigma[hi])).reshape(-1, 1)
             tmp_b = self._r[:, hi].reshape(1, -1)
             PI = np.hstack([PI, self._phi[hi]*tmp_a@tmp_b])
             tmp_a /= self._sigma[hi]
@@ -177,20 +177,21 @@ class RBF:
         self._gen_network_from_hidden_unit()
 
         # r, r2, phiは後（update_param）で使うので保存
-        self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
-        # self._r = np.tile(input, (self._h, 1)).T - self._myu # 上とどっちが早いか（多分上だけど）
+        # self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
+        self._r = np.tile(input, (self._h, 1)).T - self._myu # こっちのほうが速い
         self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
-        f = self._w0 + self._wk@self._phi
-        return f
+        return self._w0 + self._wk@self._phi
     
     def calc_o(self):
-        # oはMRANのStep 5で使われる
+        """
+        MRANのStep 5で使われるoの計算
+        """
         if self._h == 0:
             return None
-        # o = self._wk*np.tile(self._phi, (self._ny, 1)) # 下とどっちが早いか
-        o = deepcopy(self._wk)
-        for hi in range(self._h):
-            o[:, hi] *= self._phi[hi]
+        o = self._wk*np.tile(self._phi, (self._ny, 1)) # こっちのほうが若干速い
+        # o = deepcopy(self._wk)
+        # for hi in range(self._h):
+        #     o[:, hi] *= self._phi[hi]
         return o/o.max()
 

@@ -13,17 +13,15 @@ def plot_var_res(val_file, pre_res_file):
     # y2の方は予測結果なので，nyだけ遅れるので適宜埋める
     y2 = [np.nan for _ in range(len(y1) -len(y2))] + y2
 
-    plot_size = 200
+    ps = 1600 # plot_start
+    pl = 300 # plot_len
     fig = plt.figure(figsize=(15, 15))
-    ax = fig.add_subplot(311)
-    plt.plot(x[:plot_size], y1[:plot_size], label="実測値 val")
-    plt.plot(x[:plot_size], y2[:plot_size], label="推測値 pre_res")
-    ax = fig.add_subplot(312)
-    plt.plot(x[plot_size:2*plot_size], y1[plot_size:2*plot_size], label="実測値 val")
-    plt.plot(x[plot_size:2*plot_size], y2[plot_size:2*plot_size], label="推測値 pre_res")
-    ax = fig.add_subplot(313)
-    plt.plot(x[2*plot_size:3*plot_size], y1[2*plot_size:3*plot_size], label="実測値 val")
-    plt.plot(x[2*plot_size:3*plot_size], y2[2*plot_size:3*plot_size], label="推測値 pre_res")
+    for ax_pos in range(311, 314) :
+        ax = fig.add_subplot(ax_pos)
+        plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 val")
+        plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 pre_res")
+        ax.grid()
+        ps += pl
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
 
@@ -64,6 +62,7 @@ def plot_err_hist(err_hist_file, plot_type = 0):
 
         fig = plt.figure(figsize=(15, 3))
         plt.plot(x, y, label="誤差 Id")
+    plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
     
@@ -76,13 +75,8 @@ def plot_h(h_hist_file):
 
     plot_size = 200
     fig = plt.figure(figsize=(15, 15))
-    # ax = fig.add_subplot(311)
-    # plt.plot(x[:plot_size], y[:plot_size])
-    # ax = fig.add_subplot(312)
-    # plt.plot(x[plot_size:2*plot_size], y[plot_size:2*plot_size])
-    # ax = fig.add_subplot(313)
-    # plt.plot(x[2*plot_size:3*plot_size], y[2*plot_size:3*plot_size])
     plt.plot(x, y, label="隠れニューロン数 h")
+    plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
 

@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from copy import deepcopy
 
 from RBF import RBF
@@ -46,6 +47,8 @@ class RBF_MRAN:
         self._ei_abs_queue = [] # 学習中の誤差計算
         self._Id_hist = [] # 学習中の誤差履歴
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
+
+        self.update_rbf_time = [] # 時間計測
 
     def calc_E3(self):
         """
@@ -154,7 +157,10 @@ class RBF_MRAN:
 
                 if len(past_sys_output) == self._queue_max_size :
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
+                    start = time.time()
                     self.update_rbf(input, yi, cnt)
+                    duration = time.time() - start
+                    self.update_rbf_time.append(duration)
 
                     for i in range(self._rbf_ny):
                         del past_sys_output[0]
@@ -177,7 +183,7 @@ class RBF_MRAN:
         past_sys_input = [] # 過去のシステム入力
         past_sys_output = [] # 過去のシステム出力
 
-        val_res = []
+        pre_res = []
         
         cnt = 0
         with open(file_name, mode='r') as file:
@@ -190,7 +196,7 @@ class RBF_MRAN:
                     # cntは必要なくなったら消していい
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
                     f = self._rbf.calc_f(input)
-                    val_res.append(f)
+                    pre_res.append(f)
 
                     for i in range(self._rbf_ny):
                         del past_sys_output[0]
@@ -199,13 +205,12 @@ class RBF_MRAN:
                     past_sys_output.extend(yi)
                 
                 past_sys_input = data[-self._rbf_nu:]
-
                 cnt += 1
         
         # 結果の保存
         # memo : ちゃんと書きたい
         with open('./data/pre_res.txt', mode='w') as f:
-            for res in val_res:
+            for res in pre_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
 
 if __name__ == "__main__" :
@@ -218,5 +223,9 @@ if __name__ == "__main__" :
         init_h=0, # スタート時の隠れニューロン数
         E1=0.01, E2=0.01, E3=1.2, Nw=48, Sw=48)
 
+    start = time.time()
     rbf_mran.train('./data/train.txt')
+    duration = time.time()-start
+    print('rbf_mran.train() duration[s]: ', str(duration))
+    print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
     rbf_mran.val('./data/val.txt')
