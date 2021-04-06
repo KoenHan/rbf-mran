@@ -13,7 +13,8 @@ class RBF_MRAN:
         self._rbf_nu = nu
         self._past_sys_input_num = past_sys_input_num
         self._past_sys_output_num = past_sys_output_num
-        self._queue_max_size = ny*past_sys_output_num
+        self._past_sys_input_limit = nu*past_sys_input_num
+        self._past_sys_output_limit = ny*past_sys_output_num
 
         # Step 1で使われるパラメータ
         self._E1 = E1
@@ -154,22 +155,24 @@ class RBF_MRAN:
                 data = [float(l) for l in line.split()]
 
                 yi = data[:self._rbf_ny] # 今のシステム出力
+                ui = data[-self._rbf_nu:] # 今のシステム入力
 
-                if len(past_sys_output) == self._queue_max_size :
+                if len(past_sys_input) == self._past_sys_input_limit \
+                and len(past_sys_output) == self._past_sys_output_limit:
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
                     start = time.time()
                     self.update_rbf(input, yi, cnt)
                     duration = time.time() - start
                     self.update_rbf_time.append(duration)
 
-                    for i in range(self._rbf_ny):
-                        del past_sys_output[0]
-                        past_sys_output.append(data[i])
-                else :
-                    past_sys_output.extend(yi)
+                if len(past_sys_input) == self._past_sys_input_limit:
+                    del past_sys_input[:self._rbf_nu]
+                past_sys_input.extend(ui)
                 
-                past_sys_input = data[-self._rbf_nu:]
-
+                if len(past_sys_output) == self._past_sys_output_limit:
+                    del past_sys_output[:self._rbf_ny]
+                past_sys_output.extend(yi)
+                
                 cnt += 1
 
         # 誤差履歴，隠れニューロン数履歴の保存
@@ -192,7 +195,7 @@ class RBF_MRAN:
 
                 yi = data[:self._rbf_ny] # 今のシステム出力
 
-                if len(past_sys_output) == self._queue_max_size :
+                if len(past_sys_output) == self._past_sys_output_limit :
                     # cntは必要なくなったら消していい
                     input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
                     f = self._rbf.calc_f(input)
