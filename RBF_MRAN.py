@@ -51,6 +51,8 @@ class RBF_MRAN:
 
         self.update_rbf_time = [] # 時間計測
 
+        print('hello i am rbf mran')
+
     def calc_E3(self):
         """
         p.38の実験のE3の計算
@@ -175,11 +177,12 @@ class RBF_MRAN:
                 
                 cnt += 1
 
+    def save_hist(self, error_file, h_file):
         # 誤差履歴，隠れニューロン数履歴の保存
-        with open('./model/history/error.txt', mode='w') as f:
+        with open(error_file, mode='w') as f:
             f.write(str(self._Nw)+'\n')
             f.write('\n'.join(map(str, self._Id_hist))+'\n')
-        with open('./model/history/h.txt', mode='w') as f:
+        with open(h_file, mode='w') as f:
             f.write('\n'.join(map(str, self._h_hist))+'\n')
     
     def val(self, file_name):
@@ -227,8 +230,9 @@ if __name__ == "__main__" :
         E1=0.01, E2=0.01, E3=1.2, Nw=48, Sw=48)
 
     start = time.time()
-    rbf_mran.train('./data/train.txt')
+    rbf_mran.train('./data/siso/train.txt')
     duration = time.time()-start
     print('rbf_mran.train() duration[s]: ', str(duration))
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
-    rbf_mran.val('./data/val.txt')
+    rbf_mran.save_hist('./model/history/siso/error.txt', './model/history/siso/h.txt')
+    rbf_mran.val('./data/siso/val.txt')

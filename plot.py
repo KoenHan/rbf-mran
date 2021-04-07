@@ -81,7 +81,7 @@ def plot_h(h_hist_file):
     plt.legend()
 
 if __name__ == "__main__":
-    plot_var_res('./data/val.txt', './data/pre_res.txt')
-    plot_err_hist('./model/history/error.txt', plot_type=1)
-    plot_h('./model/history/h.txt')
+    plot_var_res('./data/siso/val.txt', './data/siso/pre_res.txt')
+    plot_err_hist('./model/history/siso/error.txt', plot_type=1)
+    plot_h('./model/history/siso/h.txt')
     plt.show()
