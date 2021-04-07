@@ -5,15 +5,18 @@ from copy import deepcopy
 from RBF import RBF
 
 class RBF_MRAN:
-    def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num, init_h, E1, E2, E3, Nw, Sw):
+    def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
+            init_h, E1, E2, E3, Nw, Sw):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
         self._rbf_ny = ny
         self._rbf_nu = nu
+        self._past_sys_input = [] # 過去のシステム入力
         self._past_sys_input_num = past_sys_input_num
-        self._past_sys_output_num = past_sys_output_num
         self._past_sys_input_limit = nu*past_sys_input_num
+        self._past_sys_output = [] # 過去のシステム出力
+        self._past_sys_output_num = past_sys_output_num
         self._past_sys_output_limit = ny*past_sys_output_num
 
         # Step 1で使われるパラメータ
@@ -48,10 +51,9 @@ class RBF_MRAN:
         self._ei_abs_queue = [] # 学習中の誤差計算
         self._Id_hist = [] # 学習中の誤差履歴
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
+        self._pre_res = [] # 検証時の予測結果の保存
 
         self.update_rbf_time = [] # 時間計測
-
-        print('hello i am rbf mran')
 
     def calc_E3(self):
         """
@@ -93,7 +95,7 @@ class RBF_MRAN:
 
         return case, ei, ei_norm, di
     
-    def update_rbf(self, input, yi, cnt):
+    def update_rbf(self, input, yi):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
 
@@ -101,7 +103,6 @@ class RBF_MRAN:
         satisfied, ei, ei_norm, di = self._calc_error_criteria(input, f, yi)
         # print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
-        # if cnt%2 == 0 :
         if satisfied == 0 :
             # print("satisfied!!!")
             # Step 2
@@ -147,7 +148,7 @@ class RBF_MRAN:
 
         # todo : ネットワークパラメータを何かのファイルに保存
 
-    def train(self, file_name):
+    def old_train(self, data):
         past_sys_input = [] # 過去のシステム入力
         past_sys_output = [] # 過去のシステム出力
         
@@ -177,15 +178,35 @@ class RBF_MRAN:
                 
                 cnt += 1
 
-    def save_hist(self, error_file, h_file):
+    def train(self, data):
+        yi = data[:self._rbf_ny] # 今のシステム出力
+        ui = data[-self._rbf_nu:] # 今のシステム入力
+
+        if len(self._past_sys_input) == self._past_sys_input_limit \
+        and len(self._past_sys_output) == self._past_sys_output_limit:
+            input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
+            start = time.time()
+            self.update_rbf(input, yi)
+            duration = time.time() - start
+            self.update_rbf_time.append(duration)
+
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
+        
+        if len(self._past_sys_output) == self._past_sys_output_limit:
+            del self._past_sys_output[:self._rbf_ny]
+        self._past_sys_output.extend(yi)
+                
+    def save_hist(self, err_file, h_file):
         # 誤差履歴，隠れニューロン数履歴の保存
-        with open(error_file, mode='w') as f:
+        with open(err_file, mode='w') as f:
             f.write(str(self._Nw)+'\n')
             f.write('\n'.join(map(str, self._Id_hist))+'\n')
         with open(h_file, mode='w') as f:
             f.write('\n'.join(map(str, self._h_hist))+'\n')
     
-    def val(self, file_name):
+    def old_val(self, file_name):
         past_sys_input = [] # 過去のシステム入力
         past_sys_output = [] # 過去のシステム出力
 
@@ -218,6 +239,35 @@ class RBF_MRAN:
         with open('./data/pre_res.txt', mode='w') as f:
             for res in pre_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
+
+    def val(self, data):
+        yi = data[:self._rbf_ny]
+        ui = data[-self._rbf_nu:]
+
+        if len(self._past_sys_input) == self._past_sys_input_limit \
+        and len(self._past_sys_output) == self._past_sys_output_limit:
+            input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
+            self._pre_res.append(self._rbf.calc_f(input))
+
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
+        
+        if len(self._past_sys_output) == self._past_sys_output_limit:
+            del self._past_sys_output[:self._rbf_ny]
+        self._past_sys_output.extend(yi)
+    
+    def save_pre_res(self, file_name):
+        """
+        予測結果の保存
+        """
+        with open(file_name, mode='w') as f:
+            for res in self._pre_res:
+                f.write('\t'.join(map(str, res.tolist()))+'\n')
+            
+    def save_res(self, err_file, h_file, pre_res_file):
+        self.save_hist(err_file, h_file)
+        self.save_pre_res(pre_res_file) 
 
 if __name__ == "__main__" :
     np.set_printoptions(precision=6, suppress=True)

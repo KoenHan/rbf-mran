@@ -1,37 +1,41 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_var_res(val_file, pre_res_file):
+def plot_val_res(val_file, pre_res_file):
     with open(val_file, mode='r') as f:
-        data1 = [s.strip().split('\t') for s in f.readlines()]
+        data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
-        data2 = [s.strip().split('\t') for s in f.readlines()]
+        data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
     
+    ny = int(data1[1][0])
+    data1 = data1[int(data1[0][0]) + 1:]
     x = [i for i in range(len(data1))]
-    y1 = [float(d[0]) for d in data1]
-    y2 = [float(d[0]) for d in data2]
-    # y2の方は予測結果なので，nyだけ遅れるので適宜埋める
-    y2 = [np.nan for _ in range(len(y1) -len(y2))] + y2
-
     ps = 1600 # plot_start
     pl = 300 # plot_len
-    fig = plt.figure(figsize=(15, 15))
-    for ax_pos in range(311, 314) :
-        ax = fig.add_subplot(ax_pos)
-        plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 val")
-        plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 pre_res")
-        ax.grid()
-        ps += pl
-    plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
-    plt.legend()
+    for d_ax in range(ny):
+        y1 = [d[d_ax] for d in data1]
+        y2 = [d[d_ax] for d in data2]
+        # y2の方は予測結果なので，ny*past_sys_input_numだけ遅れるので適宜埋める
+        y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
-def plot_err_hist(err_hist_file, plot_type = 0):
+        fig = plt.figure(figsize=(15, 15))
+        for ax_pos in range(311, 314) :
+            ax = fig.add_subplot(ax_pos)
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 val")
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 pre_res")
+            ax.grid()
+            ps += pl
+        plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
+        plt.legend()
+        plt.title('軸: x'+str(d_ax), y=-0.3)
+
+def plot_err_hist(err_hist_file, mode=0):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
 
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
-    if plot_type == 0 : 
+    if mode == 0 : 
         """
         先頭から一定長さだけプロット
         """
@@ -45,7 +49,7 @@ def plot_err_hist(err_hist_file, plot_type = 0):
         plt.plot(x[plot_size:2*plot_size], y[plot_size:2*plot_size], label="誤差 Id")
         ax = fig.add_subplot(313)
         plt.plot(x[2*plot_size:3*plot_size], y[2*plot_size:3*plot_size], label="誤差 Id")
-    elif plot_type == 1 :
+    elif mode == 1 :
         """
         全部プロット
         """
@@ -80,8 +84,16 @@ def plot_h(h_hist_file):
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
 
-if __name__ == "__main__":
-    plot_var_res('./data/siso/val.txt', './data/siso/pre_res.txt')
-    plot_err_hist('./model/history/siso/error.txt', plot_type=1)
-    plot_h('./model/history/siso/h.txt')
+def plot_all(err_file, h_hist_file, val_file, pre_res_file, mode=1):
+    plot_val_res(val_file, pre_res_file)
+    plot_err_hist(err_file, mode=mode)
+    plot_h(h_hist_file)
     plt.show()
+
+if __name__ == "__main__":
+    plot_all(
+        err_file='./model/history/siso/error.txt',
+        h_hist_file='./model/history/siso/h.txt',
+        val_file='./data/siso/val.txt',
+        pre_res_file='./data/siso/pre_res.txt',
+        mode=1)

@@ -10,7 +10,18 @@ class Test:
         return self.a, self.b, self.c
 
 if __name__=="__main__":
-    a = np.array([i for i in range(30)]).reshape(3, 10)
-    print(a)
-    a = np.delete(a, slice(3,5), 1)
-    print(a)
+    # a = np.array([i for i in range(30)]).reshape(3, 10)
+    # print(a)
+    # a = np.delete(a, slice(3,5), 1)
+    # print(a)
+
+    # with open('./data/siso/train.txt', mode='r') as f:
+    #     l = f.readlines()
+    # l = [list(map(float, s.strip().split())) for s in l]
+    # # l = list(map(float, l))
+    # # print(l)
+    # print(type(l[0][0]))
+    # print(l[0].strip().split())
+    # print(l[3].strip().split())
+    l = [[0, 1], [2, 3], [4, 5]]
+    print(l[:][0])
