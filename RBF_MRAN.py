@@ -6,7 +6,7 @@ from RBF import RBF
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
-            init_h, E1, E2, E3, Nw, Sw):
+            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -23,6 +23,9 @@ class RBF_MRAN:
         self._E1 = E1
         self._E2_pow = E2*E2 # ルート取る代わりにしきい値自体を2乗して使う
         self._E3 = E3
+        self._E3_max = E3_max
+        self._E3_min = E3_min
+        self._gamma = gamma
         self._Nw = Nw
         self._past_ei_norm_pow = []
 
@@ -43,9 +46,6 @@ class RBF_MRAN:
         self._z1 = self._rbf.get_one_unit_param_num()
 
         # p.55の実験に必要
-        self._eps_max = 1.2
-        self._eps_min = 0.6
-        self._gamma = 0.997
         self._gamma_n = 1
 
         self._ei_abs_queue = [] # 学習中の誤差計算
@@ -56,11 +56,12 @@ class RBF_MRAN:
         self.update_rbf_time = [] # 時間計測
 
     def calc_E3(self):
+        # return self._E3
         """
-        p.38の実験のE3の計算
+        p.55の実験のE3の計算
         """
         self._gamma_n *= self._gamma
-        return max(self._eps_max*self._gamma_n, self._eps_min)
+        return max(self._E3_max*self._gamma_n, self._E3_min)
 
     def _calc_error_criteria(self, input, f, yi):
         """
@@ -89,7 +90,6 @@ class RBF_MRAN:
             case = 1
         elif sum(self._past_ei_norm_pow) <= self._E2_pow*self._Nw :
             case = 2
-        # elif di <= self._E3 :
         elif di <= self.calc_E3(): # p.55の実験に合わせた
             case = 3
 
@@ -146,37 +146,8 @@ class RBF_MRAN:
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
 
-        # todo : ネットワークパラメータを何かのファイルに保存
+        # todo : ネットワークパラメータを何かのファイルに保存?
 
-    def old_train(self, data):
-        past_sys_input = [] # 過去のシステム入力
-        past_sys_output = [] # 過去のシステム出力
-        
-        cnt = 0
-        with open(file_name, mode='r') as file:
-            for line in file:
-                data = [float(l) for l in line.split()]
-
-                yi = data[:self._rbf_ny] # 今のシステム出力
-                ui = data[-self._rbf_nu:] # 今のシステム入力
-
-                if len(past_sys_input) == self._past_sys_input_limit \
-                and len(past_sys_output) == self._past_sys_output_limit:
-                    input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
-                    start = time.time()
-                    self.update_rbf(input, yi, cnt)
-                    duration = time.time() - start
-                    self.update_rbf_time.append(duration)
-
-                if len(past_sys_input) == self._past_sys_input_limit:
-                    del past_sys_input[:self._rbf_nu]
-                past_sys_input.extend(ui)
-                
-                if len(past_sys_output) == self._past_sys_output_limit:
-                    del past_sys_output[:self._rbf_ny]
-                past_sys_output.extend(yi)
-                
-                cnt += 1
 
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
@@ -206,40 +177,6 @@ class RBF_MRAN:
         with open(h_file, mode='w') as f:
             f.write('\n'.join(map(str, self._h_hist))+'\n')
     
-    def old_val(self, file_name):
-        past_sys_input = [] # 過去のシステム入力
-        past_sys_output = [] # 過去のシステム出力
-
-        pre_res = []
-        
-        cnt = 0
-        with open(file_name, mode='r') as file:
-            for line in file:
-                data = [float(l) for l in line.split()]
-
-                yi = data[:self._rbf_ny] # 今のシステム出力
-
-                if len(past_sys_output) == self._past_sys_output_limit :
-                    # cntは必要なくなったら消していい
-                    input = np.array(past_sys_output + past_sys_input, dtype=np.float64)
-                    f = self._rbf.calc_f(input)
-                    pre_res.append(f)
-
-                    for i in range(self._rbf_ny):
-                        del past_sys_output[0]
-                        past_sys_output.append(data[i])
-                else :
-                    past_sys_output.extend(yi)
-                
-                past_sys_input = data[-self._rbf_nu:]
-                cnt += 1
-        
-        # 結果の保存
-        # memo : ちゃんと書きたい
-        with open('./data/pre_res.txt', mode='w') as f:
-            for res in pre_res:
-                f.write('\t'.join(map(str, res.tolist()))+'\n')
-
     def val(self, data):
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]

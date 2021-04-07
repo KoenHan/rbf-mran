@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import yaml
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import generate_data
@@ -20,28 +21,38 @@ if __name__ == '__main__':
         if gen_res < 0 :
             exit()
 
-    # 学習
     with open(train_file, mode='r') as f:
         l = f.readlines()
     datas = [list(map(float, s.strip().split())) for s in l]
 
+    with open('./model/param/'+args.sys+'.yaml') as f:
+        config = yaml.safe_load(f)
+
     rbf_mran = RBF_MRAN(
         nu=int(datas[2][0]), # システム入力(制御入力)の次元
         ny=int(datas[1][0]), # システム出力ベクトルの次元
-        past_sys_input_num=1, # 過去のシステム入力保存数
-        past_sys_output_num=1, # 過去のシステム出力保存数
-        init_h=0, # スタート時の隠れニューロン数
-        E1=0.01, E2=0.01, E3=1.2, Nw=48, Sw=48)
+        past_sys_input_num=config['past_sys_input_num'], # 過去のシステム入力保存数
+        past_sys_output_num=config['past_sys_output_num'], # 過去のシステム出力保存数
+        init_h=config['init_h'], # スタート時の隠れニューロン数
+        E1=config['E1'],
+        E2=config['E2'],
+        E3=config['E3'],
+        E3_max=config['E3_max'],
+        E3_min=config['E3_min'],
+        gamma=config['gamma'],
+        Nw=config['Nw'],
+        Sw=config['Sw'])
     
+    # 学習
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.train(data)
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
     
-    # 検証
     with open(val_file, mode='r') as f:
         l = f.readlines()
     datas = [s.strip().split() for s in l]
 
+    # 検証
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.val(data)
     
