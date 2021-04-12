@@ -4,6 +4,7 @@ import argparse
 from RBF_MRAN import RBF_MRAN
 from generate_data import generate_data
 
+# 一時的にここに置く
 train_file = './data/siso/optuna/train.txt'
 val_file = './data/siso/optuna/val.txt' # valは今の所使わない
 
@@ -52,8 +53,6 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', default='siso')
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
-    parser.add_argument('-tf', '--train_file', default='train.txt')
-    parser.add_argument('-vf', '--val_file', default='val.txt')
     args = parser.parse_args()
 
     if args.gen_new_data :
@@ -62,4 +61,4 @@ if __name__=="__main__":
             exit()
 
     study = optuna.create_study()
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=1000)

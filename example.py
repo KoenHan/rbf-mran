@@ -11,6 +11,7 @@ if __name__ == '__main__':
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
     parser.add_argument('-tf', '--train_file', default='train.txt')
     parser.add_argument('-vf', '--val_file', default='val.txt')
+    parser.add_argument('-pcf', '--param_config_file', default='siso.yaml')
     args = parser.parse_args()
 
     train_file = './data/'+args.sys+'/'+args.train_file
@@ -25,7 +26,9 @@ if __name__ == '__main__':
         l = f.readlines()
     datas = [list(map(float, s.strip().split())) for s in l]
 
-    with open('./model/param/'+args.sys+'.yaml') as f:
+    config_file = './model/param/'+args.param_config_file
+    with open(config_file) as f:
+        print('Loaded param config file:', config_file)
         config = yaml.safe_load(f)
 
     rbf_mran = RBF_MRAN(
