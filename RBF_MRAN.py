@@ -48,14 +48,14 @@ class RBF_MRAN:
         # p.55の実験に必要
         self._gamma_n = 1
 
-        self._ei_abs_queue = [] # 学習中の誤差計算
-        self._Id_hist = [] # 学習中の誤差履歴
+        self._ei_abs = [] # 学習中の誤差履歴(MAE)
+        self._Id_hist = [] # 学習中の誤差履歴(式3.16)
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
         self._pre_res = [] # 検証時の予測結果の保存
 
         self.update_rbf_time = [] # 時間計測
 
-    def calc_E3(self):
+    def _calc_E3(self):
         # return self._E3
         """
         p.55の実験のE3の計算
@@ -90,7 +90,7 @@ class RBF_MRAN:
             case = 1
         elif sum(self._past_ei_norm_pow) <= self._E2_pow*self._Nw :
             case = 2
-        elif di <= self.calc_E3(): # p.55の実験に合わせた
+        elif di <= self._calc_E3(): # p.55の実験に合わせた
             case = 3
 
         return case, ei, ei_norm, di
@@ -139,15 +139,13 @@ class RBF_MRAN:
                     slice(start, start+self._z1), 1)
 
         # 学習中の誤差（式3.16）の算出及び保存
-        self._ei_abs_queue.append(ei_norm)
-        if len(self._ei_abs_queue) > self._Nw:
-            del self._ei_abs_queue[0]
-            self._Id_hist.append(sum(self._ei_abs_queue)/self._Nw)
+        self._ei_abs.append(ei_norm)
+        if len(self._ei_abs) >= self._Nw:
+            self._Id_hist.append(sum(self._ei_abs[-self._Nw:])/self._Nw)
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
 
         # todo : ネットワークパラメータを何かのファイルに保存?
-
 
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
@@ -169,14 +167,6 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
                 
-    def save_hist(self, err_file, h_file):
-        # 誤差履歴，隠れニューロン数履歴の保存
-        with open(err_file, mode='w') as f:
-            f.write(str(self._Nw)+'\n')
-            f.write('\n'.join(map(str, self._Id_hist))+'\n')
-        with open(h_file, mode='w') as f:
-            f.write('\n'.join(map(str, self._h_hist))+'\n')
-    
     def val(self, data):
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]
@@ -194,6 +184,14 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
     
+    def save_hist(self, err_file, h_file):
+        # 誤差履歴，隠れニューロン数履歴の保存
+        with open(err_file, mode='w') as f:
+            f.write(str(self._Nw)+'\n')
+            f.write('\n'.join(map(str, self._Id_hist))+'\n')
+        with open(h_file, mode='w') as f:
+            f.write('\n'.join(map(str, self._h_hist))+'\n')
+
     def save_pre_res(self, file_name):
         """
         予測結果の保存
@@ -204,7 +202,13 @@ class RBF_MRAN:
             
     def save_res(self, err_file, h_file, pre_res_file):
         self.save_hist(err_file, h_file)
-        self.save_pre_res(pre_res_file) 
+        self.save_pre_res(pre_res_file)
+
+    def calc_MAE(self):
+        """
+        全履歴から評価指標のMAEを計算
+        """
+        return sum(self._ei_abs)/len(self._ei_abs)
 
 if __name__ == "__main__" :
     np.set_printoptions(precision=6, suppress=True)

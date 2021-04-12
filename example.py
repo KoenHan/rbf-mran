@@ -1,4 +1,3 @@
-import numpy as np
 import argparse
 import yaml
 
@@ -20,6 +19,7 @@ if __name__ == '__main__':
         gen_res = generate_data(args.sys, train_file, val_file)
         if gen_res < 0 :
             exit()
+        print('Generated new train/val data.')
 
     with open(train_file, mode='r') as f:
         l = f.readlines()
@@ -47,6 +47,7 @@ if __name__ == '__main__':
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.train(data)
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
+    print('MAE: ', rbf_mran.calc_MAE())
     
     with open(val_file, mode='r') as f:
         l = f.readlines()
