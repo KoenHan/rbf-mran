@@ -31,7 +31,7 @@ def generate_data(sys_type, train_file, val_file):
             f.write(str(sys_info['nu'])+'\n')
             for n in range(data_len):
                 x = sys.get_x(n)
-                u = sys.get_u()
+                u = sys.get_u(n)
                 s = sys.gen_data_list(x, u)
                 sys.set_pre_x_and_u(x, u)
 

@@ -22,7 +22,8 @@ class SISO:
     def get_init_x(self):
         return self._init_x
     
-    def get_u(self):
+    def get_u(self, n):
+        # nは使わないけど整合性のために書いておく
         return random.uniform(-1, 1)
 
     def set_pre_x_and_u(self, x, u):

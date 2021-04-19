@@ -1,5 +1,6 @@
 import numpy as np
 import random
+# import math
 
 class MIMO:
     """
@@ -10,6 +11,11 @@ class MIMO:
         self._pre_x = [ix]
         self._pre_u = iu
         self._pre_x_limit = 2
+
+        self._T = 1000
+        self._A_a = None
+        self._A_b = None
+        self._init_A()
 
     def get_sys_info(self):
         return {'info_num':2, 'nx':2, 'nu':2}
@@ -26,8 +32,26 @@ class MIMO:
     def get_init_x(self):
         return self._init_x
     
-    def get_u(self):
-        return [random.uniform(-1, 1), random.uniform(-1, 1)]
+    def get_u(self, n):
+        # todo : p.60に合わせる
+        # return [random.uniform(-1, 1), random.uniform(-1, 1)]
+        nn = n%(self._T/2)
+        if nn == 0 :
+            self._init_A()
+        omega = 2*np.pi/self._T
+        A0 = 2*(self._A_max[0] - self._A_min[0])/self._T*nn + self._A_min[0]
+        u0 = A0*np.sin(20*omega*n + 12*np.sin(omega*(n - self._T/2)))
+        if abs(u0) < 1e-6: u0 = 0.0
+        A1 = 2*(self._A_min[1] - self._A_max[1])/self._T*nn + self._A_max[1]
+        u1 = A1*np.sin(10*omega*n + 6*np.sin(omega*(n)))
+        if abs(u1) < 1e-6: u1 = 0.0
+        return [u0, u1]
+        # memo : tmp1:tmp2=10:6の割合を保ちつつ係数の大きさを調整するとうまく行く
+        # A*np.sin(tmp1*np.deg2rad(n) + tmp2*np.sin(np.deg2rad(n)))
+
+    def _init_A(self):
+        self._A_min = [random.uniform(0.2, 0.3), random.uniform(0.2, 0.3)]
+        self._A_max = [1, 1]
     
     def set_pre_x_and_u(self, x, u):
         if len(self._pre_x) == self._pre_x_limit :
@@ -37,3 +61,17 @@ class MIMO:
     
     def gen_data_list(self, x, u):
         return x + u
+
+if __name__=="__main__":
+    import matplotlib.pyplot as plt
+    mimo = MIMO()
+    ul = []
+    limit = 1000
+    x = [i for i in range(limit)]
+    for n in x:
+        ul.append(mimo.get_u(n))
+    fig = plt.figure(figsize=(15, 15))
+    ax = fig.add_subplot(211)
+    ax.plot(x, ul)
+    plt.grid()
+    plt.show()
