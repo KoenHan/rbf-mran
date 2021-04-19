@@ -4,7 +4,7 @@ import argparse
 
 import system
 
-def generate_data(sys_type, train_file, val_file):
+def generate_data(sys_type, train_file, val_file, data_len):
     """
     データ自動生成
     Returns:
@@ -22,7 +22,6 @@ def generate_data(sys_type, train_file, val_file):
         print('----- Gen new data failed : No such system type. -----')
         return -1
     
-    data_len = 5000 # 生成されるデータファイルの行数
     for fn in [train_file, val_file] :
         with open(fn, mode='w') as f:
             sys_info = sys.get_sys_info()

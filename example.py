@@ -16,8 +16,9 @@ if __name__ == '__main__':
 
     train_file = './data/'+args.sys+'/'+args.train_file
     val_file = './data/'+args.sys+'/'+args.val_file
+    data_line = 5000 # 生成されるデータファイルの行数
     if args.gen_new_data :
-        gen_res = generate_data(args.sys, train_file, val_file)
+        gen_res = generate_data(args.sys, train_file, val_file, data_line)
         if gen_res < 0 :
             exit()
         print('Generated new train/val data.')
@@ -70,6 +71,8 @@ if __name__ == '__main__':
         h_hist_file=h_hist_file,
         val_file=val_file,
         pre_res_file=pre_res_file,
+        plot_start=3500,
+        plot_len=500,
         mode=1)
 
 

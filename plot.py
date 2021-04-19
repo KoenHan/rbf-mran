@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_val_res(val_file, pre_res_file):
+def plot_val_res(val_file, pre_res_file, plot_start, plot_len):
     with open(val_file, mode='r') as f:
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
@@ -10,8 +10,8 @@ def plot_val_res(val_file, pre_res_file):
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
     x = [i for i in range(len(data1))]
-    ps = 1600 # plot_start
-    pl = 300 # plot_len
+    # ps = 1600 # plot_start
+    # pl = 300 # plot_len
     for d_ax in range(ny):
         y1 = [d[d_ax] for d in data1]
         y2 = [d[d_ax] for d in data2]
@@ -19,6 +19,8 @@ def plot_val_res(val_file, pre_res_file):
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
         fig = plt.figure(figsize=(15, 15))
+        ps = plot_start
+        pl = plot_len
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos)
             plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 val")
@@ -84,8 +86,8 @@ def plot_h(h_hist_file):
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
 
-def plot_all(err_file, h_hist_file, val_file, pre_res_file, mode=1):
-    plot_val_res(val_file, pre_res_file)
+def plot_all(err_file, h_hist_file, val_file, pre_res_file, plot_start, plot_len, mode=1):
+    plot_val_res(val_file, pre_res_file, plot_start, plot_len)
     plot_err_hist(err_file, mode=mode)
     plot_h(h_hist_file)
     plt.show()
