@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 def plot_val_res(val_file, pre_res_file, plot_start, plot_len):
     with open(val_file, mode='r') as f:
@@ -90,10 +91,26 @@ def plot_all(err_file, h_hist_file, val_file, pre_res_file, plot_start, plot_len
     plot_h(h_hist_file)
     plt.show()
 
-if __name__ == "__main__":
+def plot_study(study_name, plot_start, plot_len, mode=1):
+    project_folder = './study/'+study_name
+    val_file = project_folder+'/data/val.txt'
+    h_hist_file = project_folder+'/history/h.txt'
+    err_file = project_folder+'/history/error.txt'
+    pre_res_file = project_folder+'/data/pre_res.txt'
     plot_all(
-        err_file='./model/history/siso/error.txt',
-        h_hist_file='./model/history/siso/h.txt',
-        val_file='./data/siso/val.txt',
-        pre_res_file='./data/siso/pre_res.txt',
-        mode=1)
+        val_file=val_file,
+        h_hist_file=h_hist_file,
+        err_file=err_file,
+        pre_res_file=pre_res_file,
+        plot_start=plot_start,
+        plot_len=plot_len,
+        mode=mode)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-sn', '--study_name', required=True)
+    args = parser.parse_args()
+
+    plot_start = 3500
+    plot_len = 500
+    plot_study(args.study_name, plot_start, plot_len, 1)
