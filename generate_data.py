@@ -10,8 +10,6 @@ def generate_data(sys_type, train_file, val_file, data_len):
     Returns:
         -(int):
             生成できたかどうか．できたなら0，できなかったら-1
-        -(list):
-            生成したファイルまでの相対パス
     """
     sys = None
     if sys_type == 'siso':
@@ -47,4 +45,4 @@ if __name__ == "__main__":
 
     train_file = './data/'+args.sys+'/'+args.train_file
     val_file = './data/'+args.sys+'/'+args.val_file
-    a, b = generate_data(args.sys, train_file, val_file)
+    a = generate_data(args.sys, train_file, val_file)
