@@ -1,15 +1,19 @@
 import sqlite3
+import argparse
 
-dbname = './model/param/mimo_optuna.db'
-conn = sqlite3.connect(dbname)
-cur = conn.cursor()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-df', '--database_file', required=True)
+    parser.add_argument('-id', '--trial_id', required=True)
+    args = parser.parse_args()
 
-# terminalで実行したSQL文と同じようにexecute()に書く
-cur.execute('SELECT * FROM trial_params WHERE trial_id == 8')
+    conn = sqlite3.connect(args.database_file)
+    cur = conn.cursor()
 
-# 中身を全て取得するfetchall()を使って、printする。
-for line in cur.fetchall() :
-    print(line[2], ': ', line[3])
+    cur.execute('SELECT * FROM trial_params WHERE trial_id == '+args.trial_id)
 
-cur.close()
-conn.close()
+    for line in cur.fetchall() :
+        print(line[2], ': ', line[3])
+
+    cur.close()
+    conn.close()

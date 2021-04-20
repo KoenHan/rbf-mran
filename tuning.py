@@ -57,12 +57,13 @@ if __name__=="__main__":
     parser.add_argument('-tf', '--train_file', required=True)
     parser.add_argument('-vf', '--val_file', required=True)
     parser.add_argument('-sn', '--study_name', required=True)
-    parser.add_argument('-tt', '--train_time', type=int, required=True)
+    parser.add_argument('-nt', '--n_trials', type=int, required=True)
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data.', action='store_true')
+    parser.add_argument('-dl', '--data_len', type=int, default=5000)
     args = parser.parse_args()
 
     if args.gen_new_data :
-        gen_res = generate_data(args.sys, TRAIN_FILE, VAL_FILE, args.train_time)
+        gen_res = generate_data(args.sys, TRAIN_FILE, VAL_FILE, args.data_len)
         if gen_res < 0 :
             exit()
 
@@ -74,4 +75,4 @@ if __name__=="__main__":
         study_name=study_name,
         storage='sqlite:///'+db_file,
         load_if_exists=True)
-    study.optimize(objective, n_trials=1000)
+    study.optimize(objective, n_trials=args.n_trials)
