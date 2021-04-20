@@ -1,5 +1,6 @@
 import argparse
 import yaml
+import os
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import generate_data
@@ -9,16 +10,24 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', default='siso')
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
-    parser.add_argument('-tf', '--train_file', default='train.txt')
-    parser.add_argument('-vf', '--val_file', default='val.txt')
-    parser.add_argument('-pcf', '--param_config_file', default='siso.yaml')
+    # parser.add_argument('-tf', '--train_file', required=True)
+    # parser.add_argument('-vf', '--val_file', required=True)
+    # parser.add_argument('-pcf', '--param_config_file', required=True)
+    parser.add_argument('-sn', '--study_name', required=True)
+    parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数', type=int, default=5000)
     args = parser.parse_args()
 
-    train_file = './data/'+args.sys+'/'+args.train_file
-    val_file = './data/'+args.sys+'/'+args.val_file
-    data_line = 5000 # 生成されるデータファイルの行数
+    # todo : 各種ファイル生成をパスで指定するのではなく，プロジェクト式に変える
+    project_folder = './study/'+args.study_name
+    for directory in ['/data', '/model', '/history']:
+        fpath = project_folder+directory
+        if not os.path.isdir(fpath):
+            os.makedirs(fpath)
+
+    train_file = project_folder+'/data/train.txt'
+    val_file = project_folder+'/data/val.txt'
     if args.gen_new_data :
-        gen_res = generate_data(args.sys, train_file, val_file, data_line)
+        gen_res = generate_data(args.sys, train_file, val_file, args.data_len)
         if gen_res < 0 :
             exit()
         print('Generated new train/val data.')
@@ -27,7 +36,7 @@ if __name__ == '__main__':
         l = f.readlines()
     datas = [list(map(float, s.strip().split())) for s in l]
 
-    config_file = './model/param/'+args.param_config_file
+    config_file = project_folder+'/model/param.yaml'
     with open(config_file) as f:
         print('Loaded param config file:', config_file)
         config = yaml.safe_load(f)
@@ -62,9 +71,12 @@ if __name__ == '__main__':
         rbf_mran.val(data)
     
     # 色々保存とプロット
-    pre_res_file = './data/'+args.sys+'/pre_res.txt'
-    err_file = './model/history/'+args.sys+'/error.txt'
-    h_hist_file = './model/history/'+args.sys+'/h.txt'
+    # pre_res_file = './data/'+args.sys+'/pre_res.txt'
+    # err_file = './model/history/'+args.sys+'/error.txt'
+    # h_hist_file = './model/history/'+args.sys+'/h.txt'
+    pre_res_file = project_folder+'/data/pre_res.txt'
+    err_file = project_folder+'/history/error.txt'
+    h_hist_file = project_folder+'/history/h.txt'
     rbf_mran.save_res(err_file, h_hist_file, pre_res_file)
     plot_all(
         err_file=err_file,

@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import random
 import argparse
@@ -21,6 +22,9 @@ def generate_data(sys_type, train_file, val_file, data_len):
         return -1
     
     for fn in [train_file, val_file] :
+        fpath = os.path.dirname(fn)
+        if not os.path.isdir(fpath):
+            os.makedirs(fpath)
         with open(fn, mode='w') as f:
             sys_info = sys.get_sys_info()
             f.write(str(sys_info['info_num'])+'\n')
