@@ -190,8 +190,7 @@ class RBF:
         """
         if self._h == 0:
             return None
-        tmp = np.tile(self._phi, (self._ny, 1))
-        o = self._wk*tmp # 下よりこっちのほうが若干速い
+        o = self._wk*np.tile(self._phi, (self._ny, 1)) # 下よりこっちのほうが若干速い
         # o = deepcopy(self._wk)
         # for hi in range(self._h):
         #     o[:, hi] *= self._phi[hi]
