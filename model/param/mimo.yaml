@@ -1,11 +1,11 @@
 past_sys_input_num: 1
 past_sys_output_num: 2
 init_h: 0
-E1: 0.01
-E2: 0.01
+E1: 1e-5
+E2: 1e-5
 E3: 1.2 # 今のところ使わない
-E3_max: 2.0
-E3_min: 0.6
+E3_max: 0.8
+E3_min: 0.3
 gamma: 0.997
-Nw: 60
-Sw: 60
+Nw: 100
+Sw: 100

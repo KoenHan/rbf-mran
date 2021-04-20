@@ -5,8 +5,10 @@ from RBF_MRAN import RBF_MRAN
 from generate_data import generate_data
 
 # 一時的にここに置く
-train_file = './data/siso/optuna/train.txt'
-val_file = './data/siso/optuna/val.txt' # valは今の所使わない
+train_file = './data/mimo/optuna/train.txt'
+val_file = './data/mimo/optuna/val.txt' # valは今の所使わない
+study_name = 'mimo_optuna'
+db_file = './model/param/'+study_name+'.db'
 
 def objective(trial):
     # psin = trial.suggest_int('past_sys_input_num', 1, 3)
@@ -56,9 +58,12 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     if args.gen_new_data :
-        gen_res = generate_data(args.sys, train_file, val_file)
+        gen_res = generate_data(args.sys, train_file, val_file, 5000)
         if gen_res < 0 :
             exit()
 
-    study = optuna.create_study()
-    study.optimize(objective, n_trials=1000)
+    study = optuna.create_study(
+        study_name=study_name,
+        storage='sqlite:///'+db_file,
+        load_if_exists=True)
+    study.optimize(objective, n_trials=10)

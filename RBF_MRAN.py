@@ -20,12 +20,12 @@ class RBF_MRAN:
         self._past_sys_output_limit = ny*past_sys_output_num
 
         # Step 1で使われるパラメータ
-        self._E1 = E1
-        self._E2_pow = E2*E2 # ルート取る代わりにしきい値自体を2乗して使う
-        self._E3 = E3
-        self._E3_max = E3_max
-        self._E3_min = E3_min
-        self._gamma = gamma
+        self._E1 = float(E1)
+        self._E2_pow = float(E2)*float(E2) # ルート取る代わりにしきい値自体を2乗して使う
+        self._E3 = float(E3)
+        self._E3_max = float(E3_max)
+        self._E3_min = float(E3_min)
+        self._gamma = float(gamma)
         self._Nw = Nw
         self._past_ei_norm_pow = []
 

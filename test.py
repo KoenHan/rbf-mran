@@ -2,22 +2,29 @@ import numpy as np
 import cupy as cp
 import time
 
-A_cpu = np.random.rand(2000, 2000)
-B_cpu = np.random.rand(2000, 2000)
+n = 10000
+A_cpu = np.random.rand(n, n)
+B_cpu = np.random.rand(n, n)
+
 start = time.time()
 AB_cpu = np.dot(A_cpu, B_cpu)
 duration = time.time() - start
 print(duration)
 
-A_gpu = cp.random.rand(2000, 2000)
-B_gpu = cp.random.rand(2000, 2000)
 
+cp.cuda.Stream.null.synchronize()
 start = time.time()
-AB_gpu = cp.dot(A_gpu, B_gpu)
-duration = time.time() - start
-AB_cpu2 = AB_gpu.get()  # AB_cpu2 は np.ndarray 型
-print(duration)
 
-print(cp.cuda.runtime.runtimeGetVersion())
-from cupy.cuda import cudnn
-print(cudnn.getVersion())
+# pattern A
+A_gpu = cp.array(A_cpu)
+B_gpu = cp.array(B_cpu)
+# pattern B
+# A_gpu = cp.random.rand(n, n)
+# B_gpu = cp.random.rand(n, n)
+AB_gpu = cp.dot(A_gpu, B_gpu)
+
+# cp.cuda.Stream.null.synchronize()
+finish = time.time()
+print(finish - start)
+
+AB_cpu2 = AB_gpu.get()  # AB_cpu2 は np.ndarray 型
