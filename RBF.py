@@ -132,7 +132,7 @@ class RBF:
         """
         def must_prune(past_o):
             for p_o in past_o:
-                if np.all(p_o >= delta) :
+                if np.all(p_o >= delta) : # todo : 実はnp.anyでおｋ？
                     return False
             return True
 
@@ -186,12 +186,15 @@ class RBF:
     def calc_o(self):
         """
         MRANのStep 5で使われるoの計算
+        oの行と列が逆
         """
         if self._h == 0:
             return None
-        o = self._wk*np.tile(self._phi, (self._ny, 1)) # こっちのほうが若干速い
+        tmp = np.tile(self._phi, (self._ny, 1))
+        o = self._wk*tmp # 下よりこっちのほうが若干速い
         # o = deepcopy(self._wk)
         # for hi in range(self._h):
         #     o[:, hi] *= self._phi[hi]
-        return o/o.max()
+        denom = np.tile(np.max(abs(o), axis=1), (self._h, 1)).T # memo : normalizedだから絶対値の最大値？
+        return o/denom
 
