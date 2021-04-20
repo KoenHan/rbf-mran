@@ -132,7 +132,7 @@ class RBF:
         """
         def must_prune(past_o):
             for p_o in past_o:
-                if np.all(p_o >= delta) : # todo : 実はnp.anyでおｋ？
+                if np.any(p_o >= delta) :
                     return False
             return True
 
