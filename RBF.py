@@ -132,7 +132,7 @@ class RBF:
         """
         def must_prune(past_o):
             for p_o in past_o:
-                if np.any(p_o >= delta) :
+                if np.any(abs(p_o) >= delta) : # memo : p_oの絶対値とるかどうかはもう少し考える必要がある
                     return False
             return True
 
