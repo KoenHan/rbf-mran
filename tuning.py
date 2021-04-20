@@ -1,3 +1,5 @@
+import os
+import yaml
 import optuna
 import argparse
 
@@ -9,15 +11,13 @@ TRAIN_FILE = './data/mimo/optuna/train.txt'
 VAL_FILE = './data/mimo/optuna/val.txt' # valは今の所使わない
 
 def objective(trial):
-    # psin = trial.suggest_int('past_sys_input_num', 1, 3)
-    # pson = trial.suggest_int('past_sys_output_num', 1, 3)
-    psin = 1
-    pson = 2
+    psin = trial.suggest_int('past_sys_input_num', 1, 1)
+    pson = trial.suggest_int('past_sys_output_num', 1, 1)
     E1 = trial.suggest_uniform('E1', 0, 1)
     E2 = trial.suggest_uniform('E2', 0, 1)
     E3_max = trial.suggest_uniform('E3_max', 0, 3)
-    E3_min = trial.suggest_uniform('E3_min', 0, 3)
-    gamma = trial.suggest_discrete_uniform('gamma', 0.990, 1.001, 0.001)
+    E3_min = trial.suggest_uniform('E3_min', 0, E3_max)
+    gamma = trial.suggest_discrete_uniform('gamma', 0.990, 1.0, 0.001)
     Nw = trial.suggest_int('Nw', 1, 100)
     Sw = trial.suggest_int('Sw', 1, 100)
 
@@ -43,7 +43,6 @@ def objective(trial):
     # 学習
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.train(data)
-    # print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
     
     with open(VAL_FILE, mode='r') as f:
         l = f.readlines()
@@ -54,25 +53,42 @@ def objective(trial):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
-    parser.add_argument('-tf', '--train_file', required=True)
-    parser.add_argument('-vf', '--val_file', required=True)
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-nt', '--n_trials', type=int, required=True)
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data.', action='store_true')
     parser.add_argument('-dl', '--data_len', type=int, default=5000)
     args = parser.parse_args()
 
-    if args.gen_new_data :
-        gen_res = gene_data(args.sys, TRAIN_FILE, VAL_FILE, args.data_len)
+    # プロジェクトフォルダ作成
+    project_folder = './study/'+args.study_name
+    for directory in ['/data', '/model', '/history']:
+        fpath = project_folder+directory
+        if not os.path.isdir(fpath):
+            os.makedirs(fpath)
+
+    # データ生成
+    TRAIN_FILE = project_folder+'/data/train.txt'
+    VAL_FILE = project_folder+'/data/val.txt'
+
+    if args.gen_new_data or not os.path.isfile(TRAIN_FILE) :
+        gen_res = gen_data(args.sys, TRAIN_FILE, VAL_FILE, args.data_len)
         if gen_res < 0 :
             exit()
 
-    TRAIN_FILE = args.train_file
-    VAL_FILE = args.val_file
-    study_name = args.study_name
-    db_file = './model/param/'+study_name+'.db'
     study = optuna.create_study(
-        study_name=study_name,
-        storage='sqlite:///'+db_file,
+        study_name=args.study_name,
+        storage='sqlite:///'+project_folder+'/model/param.db',
         load_if_exists=True)
     study.optimize(objective, n_trials=args.n_trials)
+
+    param = {}
+    for key, value in study.best_trial.params.items():
+        param[key] = value
+    param['init_h'] = 0 # プログラムの都合上追記しとく
+    param['E3'] = -1 # プログラムの都合上追記しとく
+
+    param_file = project_folder+'/model/param.yaml'
+    with open(param_file, 'w') as f:
+        yaml.dump(param, f, default_flow_style=False)
+    print('Save as param file: ', param_file)
+
