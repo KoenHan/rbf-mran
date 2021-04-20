@@ -18,14 +18,14 @@ class Objective(object):
     
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 1)
-        E1 = trial.suggest_uniform('E1', 0, 1)
-        E2 = trial.suggest_uniform('E2', 0, 1)
-        E3_max = trial.suggest_uniform('E3_max', 0, 3)
+        pson = trial.suggest_int('past_sys_output_num', 2, 2)
+        E1 = trial.suggest_uniform('E1', 0, 0.05)
+        E2 = trial.suggest_uniform('E2', 0, 0.05)
+        E3_max = trial.suggest_uniform('E3_max', 0, 1.2)
         E3_min = trial.suggest_uniform('E3_min', 0, E3_max)
         gamma = trial.suggest_discrete_uniform('gamma', 0.990, 1.0, 0.001)
-        Nw = trial.suggest_int('Nw', 1, 100)
-        Sw = trial.suggest_int('Sw', 1, 100)
+        Nw = trial.suggest_int('Nw', 1, 50)
+        Sw = trial.suggest_int('Sw', 1, 50)
 
         with open(self.train_file, mode='r') as f:
             l = f.readlines()
