@@ -33,7 +33,7 @@ class MIMO:
         return self._init_x
     
     def get_u(self, n):
-        # todo : p.60に合わせる
+        # p.60に合わせた
         # return [random.uniform(-1, 1), random.uniform(-1, 1)]
         nn = n%(self._T/2)
         if nn == 0 :

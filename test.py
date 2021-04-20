@@ -1,30 +1,18 @@
-import numpy as np
-import cupy as cp
-import time
+param = {
+    'past_sys_input_num': 1,
+    'past_sys_output_num': 1,
+    'init_h': 0,
+    'E1': 0.01,
+    'E2': 0.01,
+    'E3': -1,
+    'E3_max': 1.2,
+    'E3_min': 0.6,
+    'gamma': 0.997,
+    'Nw': 48,
+    'Sw': 48
+}
 
-n = 10000
-A_cpu = np.random.rand(n, n)
-B_cpu = np.random.rand(n, n)
-
-start = time.time()
-AB_cpu = np.dot(A_cpu, B_cpu)
-duration = time.time() - start
-print(duration)
-
-
-cp.cuda.Stream.null.synchronize()
-start = time.time()
-
-# pattern A
-A_gpu = cp.array(A_cpu)
-B_gpu = cp.array(B_cpu)
-# pattern B
-# A_gpu = cp.random.rand(n, n)
-# B_gpu = cp.random.rand(n, n)
-AB_gpu = cp.dot(A_gpu, B_gpu)
-
-# cp.cuda.Stream.null.synchronize()
-finish = time.time()
-print(finish - start)
-
-AB_cpu2 = AB_gpu.get()  # AB_cpu2 は np.ndarray 型
+for p in param.items():
+    print(p[0])
+    print(type(p[1]))
+    print(type(p[1])(1.0))

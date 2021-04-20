@@ -10,8 +10,6 @@ def plot_val_res(val_file, pre_res_file, plot_start, plot_len):
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
     x = [i for i in range(len(data1))]
-    # ps = 1600 # plot_start
-    # pl = 300 # plot_len
     for d_ax in range(ny):
         y1 = [d[d_ax] for d in data1]
         y2 = [d[d_ax] for d in data2]

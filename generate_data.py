@@ -2,10 +2,39 @@ import os
 import numpy as np
 import random
 import argparse
+import yaml
 
 import system
 
-def generate_data(sys_type, train_file, val_file, data_len):
+def gen_param_file_from_cmd(param_file):
+    """
+    コマンドラインの入力からパラメータファイル生成
+    """
+    param = {
+        'past_sys_input_num': 1,
+        'past_sys_output_num': 1,
+        'init_h': 0,
+        'E1': 0.01,
+        'E2': 0.01,
+        'E3': -1,
+        'E3_max': 1.2,
+        'E3_min': 0.6,
+        'gamma': 0.997,
+        'Nw': 48,
+        'Sw': 48
+    }
+
+    for p in param.items():
+        if p[0] == 'init_h' or p[0] == 'E3' : continue
+        print('Enter '+p[0]+' value.(Default: '+str(p[1])+')')
+        tmp = input('>> ')
+        if tmp : param[p[0]] = type(p[1])(tmp)
+
+    with open(param_file, 'w') as f:
+        yaml.dump(param, f, default_flow_style=False)
+    print('Save as param file: ', param_file)
+
+def gen_data(sys_type, train_file, val_file, data_len):
     """
     データ自動生成
     Returns:
@@ -49,4 +78,4 @@ if __name__ == "__main__":
 
     train_file = './data/'+args.sys+'/'+args.train_file
     val_file = './data/'+args.sys+'/'+args.val_file
-    a = generate_data(args.sys, train_file, val_file)
+    a = gen_data(args.sys, train_file, val_file)

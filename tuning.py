@@ -2,7 +2,7 @@ import optuna
 import argparse
 
 from RBF_MRAN import RBF_MRAN
-from generate_data import generate_data
+from generate_data import gen_data
 
 # あとで書き換えられる
 TRAIN_FILE = './data/mimo/optuna/train.txt'
@@ -63,7 +63,7 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     if args.gen_new_data :
-        gen_res = generate_data(args.sys, TRAIN_FILE, VAL_FILE, args.data_len)
+        gen_res = gene_data(args.sys, TRAIN_FILE, VAL_FILE, args.data_len)
         if gen_res < 0 :
             exit()
 
