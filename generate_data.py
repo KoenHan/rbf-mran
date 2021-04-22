@@ -47,7 +47,7 @@ def gen_data(sys_type, train_file, val_file, data_len):
     elif sys_type == 'mimo':
         sys = system.mimo.MIMO()
     else :
-        print('----- Gen new data failed : No such system type. -----')
+        print('Generate new data failed: No such system type.\nGot system type: '+sys_type)
         return -1
     
     for fn in [train_file, val_file] :

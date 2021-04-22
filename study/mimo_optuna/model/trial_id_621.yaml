@@ -1,0 +1,11 @@
+E1: 0.026
+E2: 0.0005
+E3: -1
+E3_max: 0.8348
+E3_min: 0.3911
+Nw: 29
+Sw: 95
+gamma: 0.995
+init_h: 0
+past_sys_input_num: 1
+past_sys_output_num: 2

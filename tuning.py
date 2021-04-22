@@ -13,6 +13,7 @@ class Objective(object):
         self.pre_res_file = project_folder+'/data/pre_res.txt'
         self.err_file = project_folder+'/history/error.txt'
         self.h_hist_file = project_folder+'/history/h.txt'
+        self.param_file = project_folder+'/model/param.yaml'
         print(self.train_file)
         self.min_MAE = 1e10
     
@@ -56,7 +57,7 @@ class Objective(object):
 
         MAE = rbf_mran.calc_MAE()
         if MAE < self.min_MAE:
-            self.min_MAE == MAE
+            self.min_MAE = MAE
             with open(self.val_file, mode='r') as f:
                 l = f.readlines()
             datas = [s.strip().split() for s in l]
@@ -66,6 +67,14 @@ class Objective(object):
                 rbf_mran.val(data)
                 
             rbf_mran.save_res(self.err_file, self.h_hist_file, self.pre_res_file)
+            param = {
+                'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,
+                'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'init_h': 0,
+                'past_sys_input_num': psin, 'past_sys_output_num': pson}
+            with open(self.param_file, 'w') as f:
+                yaml.dump(param, f, default_flow_style=False)
+            print('Save as param file: ', self.param_file)
+
         return MAE
 
 if __name__=="__main__":

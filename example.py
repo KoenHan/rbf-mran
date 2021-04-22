@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数', type=int, default=5000)
+    parser.add_argument('-pf', '--param_file', default='param.yaml')
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
@@ -35,8 +36,8 @@ if __name__ == '__main__':
     datas = [list(map(float, s.strip().split())) for s in l]
 
     # パラメータファイル生成or読み込み
-    param_file = project_folder+'/model/param.yaml'
-    if not os.path.isfile(param_file) :
+    param_file = project_folder+'/model/'+args.param_file
+    if args.param_file == 'param.yaml' and not os.path.isfile(param_file) :
         gen_param_file_from_cmd(param_file)
 
     with open(param_file) as f:
@@ -59,6 +60,7 @@ if __name__ == '__main__':
         Sw=config['Sw'])
     
     # 学習
+    print('Start train.')
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.train(data)
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
@@ -67,10 +69,11 @@ if __name__ == '__main__':
     with open(val_file, mode='r') as f:
         l = f.readlines()
     datas = [s.strip().split() for s in l]
-
+    print('Train finished.\nStart validation.')
     # 検証
     for data in datas[int(datas[0][0])+1:] :
         rbf_mran.val(data)
+    print('Validation finished.')
     
     # 色々保存とプロット
     pre_res_file = project_folder+'/data/pre_res.txt'
