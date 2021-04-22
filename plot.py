@@ -109,8 +109,9 @@ def plot_study(study_name, plot_start, plot_len, mode=1):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-sn', '--study_name', required=True)
+    parser.add_argument('-ps', '--plot_start', type=int, default=3500)
+    parser.add_argument('-pl', '--plot_len', type=int, default=500)
+    parser.add_argument('-m', '--mode', type=int, default=1)
     args = parser.parse_args()
 
-    plot_start = 3500
-    plot_len = 500
-    plot_study(args.study_name, plot_start, plot_len, 1)
+    plot_study(args.study_name, args.plot_start, args.plot_len, args.mode)

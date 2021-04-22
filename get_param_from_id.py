@@ -2,6 +2,8 @@ import sqlite3
 import argparse
 import yaml
 
+from utils import save_param
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-df', '--db_file')
@@ -23,10 +25,7 @@ if __name__ == '__main__':
     param['init_h'] = 0 # プログラムの都合上追記しとく
     param['E3'] = -1 # プログラムの都合上追記しとく
 
-    param_file = project_folder+'/model/trial_id_'+str(args.trial_id)+'.yaml'
-    with open(param_file, 'w') as f:
-        yaml.dump(param, f, default_flow_style=False)
-    print('Save as param file: ', param_file)
-
+    save_param(param, project_folder+'/model/trial_id_'+str(args.trial_id)+'.yaml')
+    
     cur.close()
     conn.close()

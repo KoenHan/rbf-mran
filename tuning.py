@@ -5,6 +5,7 @@ import argparse
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import gen_data
+from utils import save_param
 
 class Objective(object):
     def __init__(self, project_folder):
@@ -67,13 +68,12 @@ class Objective(object):
                 rbf_mran.val(data)
                 
             rbf_mran.save_res(self.err_file, self.h_hist_file, self.pre_res_file)
-            param = {
-                'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,
-                'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'init_h': 0,
-                'past_sys_input_num': psin, 'past_sys_output_num': pson}
-            with open(self.param_file, 'w') as f:
-                yaml.dump(param, f, default_flow_style=False)
-            print('Save as param file: ', self.param_file)
+            save_param({
+                    'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,
+                    'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'init_h': 0,
+                    'past_sys_input_num': psin, 'past_sys_output_num': pson
+                },
+                self.param_file)
 
         return MAE
 
@@ -114,8 +114,5 @@ if __name__=="__main__":
     param['init_h'] = 0 # プログラムの都合上追記しとく
     param['E3'] = -1 # プログラムの都合上追記しとく
 
-    param_file = project_folder+'/model/param.yaml'
-    with open(param_file, 'w') as f:
-        yaml.dump(param, f, default_flow_style=False)
-    print('Save as param file: ', param_file)
+    save_param(param, project_folder+'/model/param.yaml')
 
