@@ -7,7 +7,7 @@ import os
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
-from plot import plot_all
+from plot import plot_study
 from utils import load_param, gen_study
 
 if __name__ == '__main__':
@@ -24,8 +24,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
-    study_folder = './study/'+args.study_name
-    gen_study(study_folder)
+    study_folder = gen_study(args.study_name)
 
     # データ生成
     train_file = study_folder+'/data/train.txt'
@@ -60,27 +59,25 @@ if __name__ == '__main__':
         E3_min=param['E3_min'],
         gamma=param['gamma'],
         Nw=param['Nw'],
-        Sw=param['Sw'])
+        Sw=param['Sw'],
+        realtime=True)
     
     # 学習（リアルタイムでのシステム同定）
     print('Start real time train.')
     for data in datas[int(datas[0][0])+1:] :
-        rbf_mran.train(data, True)
+        rbf_mran.train(data)
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
     print('Total MAE: ', rbf_mran.calc_MAE())
     
     # 色々保存とプロット
-    pre_res_file = study_folder+'/data/pre_res.txt'
-    err_file = study_folder+'/history/error.txt'
+    val_ps_file = study_folder+'/data/val_pre_res.txt'
+    rl_ps_file  = study_folder+'/data/rl_pre_res.txt'
+    err_file    = study_folder+'/history/error.txt'
     h_hist_file = study_folder+'/history/h.txt'
-    rbf_mran.save_res(err_file, h_hist_file, pre_res_file)
-    plot_all(
-        err_file=err_file,
-        h_hist_file=h_hist_file,
-        val_file=train_file, # リアルタイムのシステム同定結果を見たいので，これはタイプミスではない
-        pre_res_file=pre_res_file,
-        plot_start=args.plot_start,
-        plot_len=args.plot_len,
+    rbf_mran.save_res(err_file, h_hist_file, val_ps_file, rl_ps_file)
+    plot_study(
+        study_name=args.study_name, 
+        plot_start=3500,
+        plot_len=500,
         mode=1)
-
 

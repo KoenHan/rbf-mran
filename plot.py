@@ -1,9 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import os
 
-def plot_val_res(val_file, pre_res_file, plot_start, plot_len):
-    with open(val_file, mode='r') as f:
+def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len):
+    """
+    指定区間内の真値と予測値をプロットするプログラム．
+    見やすさを考慮して3段に分けてプロットする．
+
+    Params:
+        gt_file(str):
+            真値ファイルのパス．
+        pre_res_file(str):
+            予測値ファイルのパス．
+        plot_start(int):
+            プロット開始点．
+        plot_len(int):
+            各段でプロットされる区間の長さ．
+    """
+    with open(gt_file, mode='r') as f:
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
@@ -22,8 +37,8 @@ def plot_val_res(val_file, pre_res_file, plot_start, plot_len):
         pl = plot_len
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos)
-            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 val")
-            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 pre_res")
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+gt_file)
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+pre_res_file)
             ax.grid()
             ps += pl
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
@@ -86,25 +101,26 @@ def plot_h(h_hist_file):
     plt.legend()
 
 def plot_all(err_file, h_hist_file, val_file, pre_res_file, plot_start, plot_len, mode=1):
-    plot_val_res(val_file, pre_res_file, plot_start, plot_len)
+    plot_pre_res(val_file, pre_res_file, plot_start, plot_len)
     plot_err_hist(err_file, mode=mode)
     plot_h(h_hist_file)
     plt.show()
 
 def plot_study(study_name, plot_start, plot_len, mode=1):
     project_folder = './study/'+study_name
-    val_file = project_folder+'/data/val.txt'
+    val_file    = project_folder+'/data/val.txt'
+    val_ps_file = project_folder+'/data/val_pre_res.txt'
+    rl_file     = project_folder+'/data/train.txt'
+    rl_ps_file  = project_folder+'/data/rl_pre_res.txt'
     h_hist_file = project_folder+'/history/h.txt'
-    err_file = project_folder+'/history/error.txt'
-    pre_res_file = project_folder+'/data/pre_res.txt'
-    plot_all(
-        val_file=val_file,
-        h_hist_file=h_hist_file,
-        err_file=err_file,
-        pre_res_file=pre_res_file,
-        plot_start=plot_start,
-        plot_len=plot_len,
-        mode=mode)
+    err_file    = project_folder+'/history/error.txt'
+    if os.path.isfile(val_ps_file) :
+        plot_pre_res(val_file, val_ps_file, plot_start, plot_len)
+    if os.path.isfile(rl_ps_file):
+        plot_pre_res(rl_file, rl_ps_file, plot_start, plot_len)
+    plot_err_hist(err_file, mode=mode)
+    plot_h(h_hist_file)
+    plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

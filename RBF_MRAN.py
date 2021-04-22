@@ -6,7 +6,7 @@ from RBF import RBF
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
-            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw):
+            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, realtime=False):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -51,9 +51,11 @@ class RBF_MRAN:
         self._ei_abs = [] # 学習中の誤差履歴(MAE)
         self._Id_hist = [] # 学習中の誤差履歴(式3.16)
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
-        self._pre_res = [] # 検証時の予測結果の保存
+        self._rl_pre_res = [] # リアルタイムのシステム同定の結果の保存
+        self._val_pre_res = [] # 検証時の予測結果の保存
 
         self.update_rbf_time = [] # 時間計測
+        self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
 
     def _calc_E3(self):
         # return self._E3
@@ -149,7 +151,7 @@ class RBF_MRAN:
 
         return f
 
-    def train(self, data, realtime=False):
+    def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
@@ -160,8 +162,8 @@ class RBF_MRAN:
             next_y = self.update_rbf(input, yi)
             finish = time.time()
             self.update_rbf_time.append(finish - start)
-            if realtime :
-                self._pre_res.append(next_y)
+            if self.realtime :
+                self._rl_pre_res.append(next_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -178,7 +180,7 @@ class RBF_MRAN:
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
-            self._pre_res.append(self._rbf.calc_f(input))
+            self._val_pre_res.append(self._rbf.calc_f(input))
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -188,7 +190,7 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
     
-    def save_hist(self, err_file, h_file):
+    def _save_hist(self, err_file, h_file):
         '''
         誤差履歴，隠れニューロン数履歴の保存
         '''
@@ -198,17 +200,22 @@ class RBF_MRAN:
         with open(h_file, mode='w') as f:
             f.write('\n'.join(map(str, self._h_hist))+'\n')
 
-    def save_pre_res(self, file_name):
+    def _save_pre_res(self, pre_res, ps_file):
         """
         予測結果の保存
         """
-        with open(file_name, mode='w') as f:
-            for res in self._pre_res:
+        with open(ps_file, mode='w') as f:
+            for res in pre_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
-            
-    def save_res(self, err_file, h_file, pre_res_file):
-        self.save_hist(err_file, h_file)
-        self.save_pre_res(pre_res_file)
+
+    def save_res(self, err_file, h_file, val_ps_file, rl_ps_file):
+        self._save_hist(err_file, h_file)
+        if len(self._val_pre_res) :
+            self._save_pre_res(self._val_pre_res, val_ps_file)
+            print('Saved validation prediction result as file: '+val_ps_file)
+        if len(self._rl_pre_res) :
+            self._save_pre_res(self._rl_pre_res, rl_ps_file)
+            print('Saved realtime prediction result as file: '+rl_ps_file)
 
     def calc_MAE(self):
         """
@@ -231,5 +238,5 @@ if __name__ == "__main__" :
     duration = time.time()-start
     print('rbf_mran.train() duration[s]: ', str(duration))
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
-    rbf_mran.save_hist('./model/history/siso/error.txt', './model/history/siso/h.txt')
+    rbf_mran._save_hist('./model/history/siso/error.txt', './model/history/siso/h.txt')
     rbf_mran.val('./data/siso/val.txt')

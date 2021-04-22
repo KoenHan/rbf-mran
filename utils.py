@@ -12,9 +12,11 @@ def load_param(param_file):
     print('Loaded param file:', param_file)
     return config
 
-def gen_study(study_folder):
+def gen_study(study_name):
+    study_folder = './study/'+study_name
     for directory in ['/data', '/model', '/history']:
         fpath = study_folder+directory
         if not os.path.isdir(fpath):
             os.makedirs(fpath)
+    return study_folder
 
