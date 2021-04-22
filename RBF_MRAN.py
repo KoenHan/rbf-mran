@@ -51,10 +51,10 @@ class RBF_MRAN:
         self._ei_abs = [] # 学習中の誤差履歴(MAE)
         self._Id_hist = [] # 学習中の誤差履歴(式3.16)
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
-        self._rl_pre_res = [] # リアルタイムのシステム同定の結果の保存
+        self._rt_pre_res = [] # リアルタイムのシステム同定の結果の保存
         self._val_pre_res = [] # 検証時の予測結果の保存
 
-        self.update_rbf_time = [] # 時間計測
+        self._update_rbf_time = [] # 時間計測
         self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
 
     def _calc_E3(self):
@@ -161,9 +161,9 @@ class RBF_MRAN:
             start = time.time()
             next_y = self.update_rbf(input, yi)
             finish = time.time()
-            self.update_rbf_time.append(finish - start)
+            self._update_rbf_time.append(finish - start)
             if self.realtime :
-                self._rl_pre_res.append(next_y)
+                self._rt_pre_res.append(next_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -208,20 +208,26 @@ class RBF_MRAN:
             for res in pre_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
 
-    def save_res(self, err_file, h_file, val_ps_file, rl_ps_file):
-        self._save_hist(err_file, h_file)
+    def save_res(self, err_file, h_hist_file, val_ps_file, rt_ps_file):
+        self._save_hist(err_file, h_hist_file)
         if len(self._val_pre_res) :
             self._save_pre_res(self._val_pre_res, val_ps_file)
-            print('Saved validation prediction result as file: '+val_ps_file)
-        if len(self._rl_pre_res) :
-            self._save_pre_res(self._rl_pre_res, rl_ps_file)
-            print('Saved realtime prediction result as file: '+rl_ps_file)
+            print('Saved validation prediction results as file: '+val_ps_file)
+        if len(self._rt_pre_res) :
+            self._save_pre_res(self._rt_pre_res, rt_ps_file)
+            print('Saved realtime prediction results as file: '+rt_ps_file)
 
     def calc_MAE(self):
         """
         全履歴から評価指標のMAEを計算
         """
         return sum(self._ei_abs)/len(self._ei_abs)
+    
+    def calc_mean_update_time(self):
+        """
+        1回の更新にかかる時間の平均を計算
+        """
+        return sum(self._update_rbf_time)/len(self._update_rbf_time)
 
 if __name__ == "__main__" :
     np.set_printoptions(precision=6, suppress=True)
@@ -237,6 +243,6 @@ if __name__ == "__main__" :
     rbf_mran.train('./data/siso/train.txt')
     duration = time.time()-start
     print('rbf_mran.train() duration[s]: ', str(duration))
-    print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
+    print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran._update_rbf_time)/len(rbf_mran._update_rbf_time))
     rbf_mran._save_hist('./model/history/siso/error.txt', './model/history/siso/h.txt')
     rbf_mran.val('./data/siso/val.txt')

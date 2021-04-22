@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
-def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len):
+def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
     """
     指定区間内の真値と予測値をプロットするプログラム．
     見やすさを考慮して3段に分けてプロットする．
@@ -17,6 +17,8 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len):
             プロット開始点．
         plot_len(int):
             各段でプロットされる区間の長さ．
+        title(str):
+            ウィンドウタイトル．
     """
     with open(gt_file, mode='r') as f:
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
@@ -32,13 +34,13 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len):
         # y2の方は予測結果なので，ny*past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
-        fig = plt.figure(figsize=(15, 15))
+        fig = plt.figure(title, figsize=(15, 15))
         ps = plot_start
         pl = plot_len
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos)
-            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+gt_file)
-            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+pre_res_file)
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+os.path.basename(gt_file))
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+os.path.basename(pre_res_file))
             ax.grid()
             ps += pl
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
@@ -49,6 +51,7 @@ def plot_err_hist(err_hist_file, mode=0):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
 
+    title = "誤差 Id"
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
     if mode == 0 : 
@@ -58,20 +61,20 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(len(y))]
 
         plot_size = 200
-        fig = plt.figure(figsize=(15, 15))
+        fig = plt.figure(title, figsize=(15, 15))
         ax = fig.add_subplot(311)
-        plt.plot(x[:plot_size], y[:plot_size], label="誤差 Id")
+        plt.plot(x[:plot_size], y[:plot_size], label=title)
         ax = fig.add_subplot(312)
-        plt.plot(x[plot_size:2*plot_size], y[plot_size:2*plot_size], label="誤差 Id")
+        plt.plot(x[plot_size:2*plot_size], y[plot_size:2*plot_size], label=title)
         ax = fig.add_subplot(313)
-        plt.plot(x[2*plot_size:3*plot_size], y[2*plot_size:3*plot_size], label="誤差 Id")
+        plt.plot(x[2*plot_size:3*plot_size], y[2*plot_size:3*plot_size], label=title)
     elif mode == 1 :
         """
         全部プロット
         """
         x = [i for i in range(len(y))]
-        fig = plt.figure(figsize=(15, 15))
-        plt.plot(x, y, label="誤差 Id")
+        fig = plt.figure(title, figsize=(15, 15))
+        plt.plot(x, y, label=title)
     else :
         """
         一定間隔ごとプロット
@@ -80,8 +83,8 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(0, len(y), gap)]
         y = y[::gap]
 
-        fig = plt.figure(figsize=(15, 3))
-        plt.plot(x, y, label="誤差 Id")
+        fig = plt.figure(title, figsize=(15, 3))
+        plt.plot(x, y, label=title)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
@@ -93,9 +96,10 @@ def plot_h(h_hist_file):
     x = [i for i in range(len(data))]
     y = data
 
+    title = "隠れニューロン数 h"
     plot_size = 200
-    fig = plt.figure(figsize=(15, 15))
-    plt.plot(x, y, label="隠れニューロン数 h")
+    fig = plt.figure(title, figsize=(15, 15))
+    plt.plot(x, y, label=title)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
@@ -106,19 +110,19 @@ def plot_all(err_file, h_hist_file, val_file, pre_res_file, plot_start, plot_len
     plot_h(h_hist_file)
     plt.show()
 
-def plot_study(study_name, plot_start, plot_len, mode=1):
+def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     project_folder = './study/'+study_name
     val_file    = project_folder+'/data/val.txt'
     val_ps_file = project_folder+'/data/val_pre_res.txt'
-    rl_file     = project_folder+'/data/train.txt'
-    rl_ps_file  = project_folder+'/data/rl_pre_res.txt'
+    rt_file     = project_folder+'/data/train.txt'
+    rt_ps_file  = project_folder+'/data/rt_pre_res.txt'
     h_hist_file = project_folder+'/history/h.txt'
     err_file    = project_folder+'/history/error.txt'
     if os.path.isfile(val_ps_file) :
-        plot_pre_res(val_file, val_ps_file, plot_start, plot_len)
-    if os.path.isfile(rl_ps_file):
-        plot_pre_res(rl_file, rl_ps_file, plot_start, plot_len)
-    plot_err_hist(err_file, mode=mode)
+        plot_pre_res(val_file, val_ps_file, plot_start, plot_len, 'validation')
+    if need_rt and os.path.isfile(rt_ps_file):
+        plot_pre_res(rt_file, rt_ps_file, plot_start, plot_len, 'realtime')
+    plot_err_hist(err_file, mode=eh_mode)
     plot_h(h_hist_file)
     plt.show()
 
