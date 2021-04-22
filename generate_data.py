@@ -5,10 +5,11 @@ import argparse
 import yaml
 
 import system
+from utils import save_param
 
 def gen_param_file_from_cmd(param_file):
     """
-    コマンドラインの入力からパラメータファイル生成
+    コマンドラインの入力からパラメータファイル生成．
     """
     param = {
         'past_sys_input_num': 1,
@@ -30,20 +31,38 @@ def gen_param_file_from_cmd(param_file):
         tmp = input('>> ')
         if tmp : param[p[0]] = type(p[1])(tmp)
 
-    with open(param_file, 'w') as f:
-        yaml.dump(param, f, default_flow_style=False)
-    print('Save as param file: ', param_file)
+    save_param(param, param_file)
 
-def gen_data(sys_type, train_file, val_file, data_len):
+def gen_data(sys_type, train_file, val_file, data_len, ncx=-1, ncu=-1):
     """
     データ自動生成
+    Params:
+        sys_type(str):
+            システムのタイプ．
+            sisoかmimoのみ可でそれ以外の場合は何も生成しない．
+        train_file(str):
+            学習用データ保存先．
+        val_file(str):
+            検証用データ保存先．
+        data_len(int):
+            生成される学習/検証用データの長さ（＝行数）．
+        ncx(int):
+            n_change_xの略．
+            xの生成式を切り替える境目．
+            -1ならinfと解釈．
+        ncu(int):
+            n_change_uの略．
+            uの生成式を切り替える境目．
+            -1ならinfと解釈．
+        
     Returns:
         -(int):
-            生成できたかどうか．できたなら0，できなかったら-1
+            生成できたかどうか．
+            できたなら0，できなかったら-1．
     """
     sys = None
     if sys_type == 'siso':
-        sys = system.siso.SISO()
+        sys = system.siso.SISO(ncx=ncx, ncu=ncu)
     elif sys_type == 'mimo':
         sys = system.mimo.MIMO()
     else :
@@ -67,6 +86,7 @@ def gen_data(sys_type, train_file, val_file, data_len):
 
                 f.write('\t'.join(map(str, s))+'\n')
 
+    print('Generated new train/val data.')
     return 0
             
 if __name__ == "__main__":

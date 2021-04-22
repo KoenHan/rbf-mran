@@ -1,5 +1,5 @@
 '''
-学習用データで学習し，検証データで検証するプログラム
+リアルタイムでシステムが変わっても同定できるかどうかを試すプログラム
 '''
 
 import argparse
@@ -16,6 +16,10 @@ if __name__ == '__main__':
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数', type=int, default=5000)
+    parser.add_argument('-ncx', '--n_change_x', help='xの生成式を切り替える境目', type=int, default=-1)
+    parser.add_argument('-ncu', '--n_change_u', help='uの生成式を切り替える境目', type=int, default=-1)
+    parser.add_argument('-ps', '--plot_start', type=int, default=3500)
+    parser.add_argument('-pl', '--plot_len', type=int, default=500)
     parser.add_argument('-pf', '--param_file', default='param.yaml')
     args = parser.parse_args()
 
@@ -25,12 +29,13 @@ if __name__ == '__main__':
 
     # データ生成
     train_file = study_folder+'/data/train.txt'
-    val_file = study_folder+'/data/val.txt'
+    val_file = study_folder+'/data/val.txt' # 使われないがとりあえず生成
     if args.gen_new_data or not os.path.isfile(train_file) :
-        gen_res = gen_data(args.sys, train_file, val_file, args.data_len)
+        gen_res = gen_data(
+            args.sys, train_file, val_file,
+            args.data_len, ncx=args.n_change_x, ncu=args.n_change_u)
         if gen_res < 0 :
             exit()
-        print('Generated new train/val data.')
 
     with open(train_file, mode='r') as f:
         l = f.readlines()
@@ -57,21 +62,12 @@ if __name__ == '__main__':
         Nw=param['Nw'],
         Sw=param['Sw'])
     
-    # 学習
-    print('Start train.')
+    # 学習（リアルタイムでのシステム同定）
+    print('Start real time train.')
     for data in datas[int(datas[0][0])+1:] :
-        rbf_mran.train(data)
+        rbf_mran.train(data, True)
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran.update_rbf_time)/len(rbf_mran.update_rbf_time))
     print('Total MAE: ', rbf_mran.calc_MAE())
-    
-    with open(val_file, mode='r') as f:
-        l = f.readlines()
-    datas = [s.strip().split() for s in l]
-    print('Train finished.\nStart validation.')
-    # 検証
-    for data in datas[int(datas[0][0])+1:] :
-        rbf_mran.val(data)
-    print('Validation finished.')
     
     # 色々保存とプロット
     pre_res_file = study_folder+'/data/pre_res.txt'
@@ -81,10 +77,10 @@ if __name__ == '__main__':
     plot_all(
         err_file=err_file,
         h_hist_file=h_hist_file,
-        val_file=val_file,
+        val_file=train_file, # リアルタイムのシステム同定結果を見たいので，これはタイプミスではない
         pre_res_file=pre_res_file,
-        plot_start=3500,
-        plot_len=500,
+        plot_start=args.plot_start,
+        plot_len=args.plot_len,
         mode=1)
 
 

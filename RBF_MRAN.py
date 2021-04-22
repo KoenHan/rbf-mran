@@ -145,9 +145,11 @@ class RBF_MRAN:
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
 
-        # todo : ネットワークパラメータを何かのファイルに保存?
+        # memo: ネットワークパラメータを何かのファイルに保存?
 
-    def train(self, data):
+        return f
+
+    def train(self, data, realtime=False):
         yi = data[:self._rbf_ny] # 今のシステム出力
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
@@ -155,9 +157,11 @@ class RBF_MRAN:
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
             start = time.time()
-            self.update_rbf(input, yi)
-            duration = time.time() - start
-            self.update_rbf_time.append(duration)
+            next_y = self.update_rbf(input, yi)
+            finish = time.time()
+            self.update_rbf_time.append(finish - start)
+            if realtime :
+                self._pre_res.append(next_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -185,7 +189,9 @@ class RBF_MRAN:
         self._past_sys_output.extend(yi)
     
     def save_hist(self, err_file, h_file):
-        # 誤差履歴，隠れニューロン数履歴の保存
+        '''
+        誤差履歴，隠れニューロン数履歴の保存
+        '''
         with open(err_file, mode='w') as f:
             f.write(str(self._Nw)+'\n')
             f.write('\n'.join(map(str, self._Id_hist))+'\n')
