@@ -66,23 +66,23 @@ class RBF:
         self._myu = np.vstack(myu).T
         self._sigma = np.array(sigma, np.float64)
 
-    def gen_xi(self):
-        xi = deepcopy(self._w0)
+    def gen_chi(self):
+        chi = deepcopy(self._w0)
 
         for hi in range(self._h):
-            xi = np.hstack([xi, self._wk[:, hi], self._myu[:, hi], self._sigma[hi]])
+            chi = np.hstack([chi, self._wk[:, hi], self._myu[:, hi], self._sigma[hi]])
 
-        return xi
+        return chi
 
-    def update_param_from_xi(self, xi):
-        self._w0 = xi[:self._ny]
+    def update_param_from_chi(self, chi):
+        self._w0 = chi[:self._ny]
         left = self._ny
         for unit in self._hidden_unit:
-            unit.wk = xi[left:left+self._ny]
+            unit.wk = chi[left:left+self._ny]
             left += self._ny
-            unit.myu = xi[left:left+self._input_size]
+            unit.myu = chi[left:left+self._input_size]
             left += self._input_size
-            unit.sigma = xi[left]
+            unit.sigma = chi[left]
             left += 1
     
     def get_param_num(self):
@@ -111,6 +111,7 @@ class RBF:
             di(double):
                 xiと一番近いμとの距離
         """
+        di = np.inf
         di = 1.0e8
         for col in range(self._h):
             e = np.linalg.norm(xi - self._myu[:, col])
@@ -195,5 +196,7 @@ class RBF:
         # for hi in range(self._h):
         #     o[:, hi] *= self._phi[hi]
         denom = np.tile(np.max(abs(o), axis=1), (self._h, 1)).T # memo : normalizedだから絶対値の最大値？
+        # denomはself._r2の値が大きすぎると
+        # （＝新しいinputが既存のニューロンとの距離が遠すぎると）
+        # 0になり，0割りが生じて学習できなくなる
         return o/denom
-

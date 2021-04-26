@@ -1,21 +1,6 @@
 import numpy as np
-import time
 
-N = 2
-x = -np.random.rand(N, N)
-
-start = time.time()
-a = abs(x)
-end = time.time()
-print(end - start)
-print(x)
-print(a)
-
-
-x = -np.random.rand(N, N)
-start = time.time()
-b = np.abs(x)
-end = time.time()
-print(end - start)
-print(x)
-print(b)
+# a = np.array([1, 2])
+# b = np.array([9.44426929e-308, 9.44426929e-308])
+# print(a/b)
+print(np.exp(-3.04483048e+20/3.19606240e+05))

@@ -34,13 +34,13 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         # y2の方は予測結果なので，ny*past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
-        fig = plt.figure(title, figsize=(15, 15))
+        fig = plt.figure(title+'_x'+str(d_ax), figsize=(15, 15))
         ps = plot_start
         pl = plot_len
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos)
-            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+os.path.basename(gt_file))
-            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+os.path.basename(pre_res_file))
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 ")#+os.path.basename(gt_file))
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 ")#+os.path.basename(pre_res_file))
             ax.grid()
             ps += pl
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
@@ -118,7 +118,7 @@ def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     train_ps_file  = project_folder+'/data/train_pre_res.txt'
     h_hist_file = project_folder+'/history/h.txt'
     err_file    = project_folder+'/history/error.txt'
-    if os.path.isfile(test_ps_file) :
+    if not need_rt and os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test')
     if need_rt and os.path.isfile(train_ps_file):
         plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime')

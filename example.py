@@ -4,6 +4,7 @@
 
 import argparse
 import os
+import tqdm
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
@@ -66,21 +67,21 @@ if __name__ == '__main__':
     
     # 学習
     print('Start train.')
-    for data in datas[int(datas[0][0])+1:] :
+    for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
         rbf_mran.train(data)
     print('Train finished.')
     print('mean rbf_mran.update_rbf() duration[s]: ', rbf_mran.calc_mean_update_time())
     print('Total MAE: ', rbf_mran.calc_MAE())
-    
-    with open(test_file, mode='r') as f:
-        l = f.readlines()
-    datas = [s.strip().split() for s in l]
 
-    # 検証
-    print('Start test.')
-    for data in datas[int(datas[0][0])+1:] :
-        rbf_mran.test(data)
-    print('Test finished.')
+    if not args.realtime :
+        with open(test_file, mode='r') as f:
+            l = f.readlines()
+        datas = [s.strip().split() for s in l]
+        # 検証
+        print('Start test.')
+        for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
+            rbf_mran.test(data)
+        print('Test finished.')
 
     # 色々保存とプロット
     rbf_mran.save_res(

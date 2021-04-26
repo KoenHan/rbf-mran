@@ -121,10 +121,10 @@ class RBF_MRAN:
             # Step 3
             PI = self._rbf.calc_PI()
             # Step 4
-            xi = self._rbf.gen_xi()
+            chi = self._rbf.gen_chi()
             K = self._P@PI@np.linalg.inv(self._R + PI.T@self._P@PI)
-            xi = xi + K@ei
-            self._rbf.update_param_from_xi(xi)
+            chi = chi + K@ei
+            self._rbf.update_param_from_chi(chi)
 
             # Pの更新
             I = np.eye(z)

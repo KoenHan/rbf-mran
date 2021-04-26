@@ -23,8 +23,18 @@ class SISO:
             x = 29/40*np.sin((16*self._pre_u + 8*self._pre_x)/(3 + 4*self._pre_u**2 + 4*self._pre_x**2))
             x += 0.2*(self._pre_u + self._pre_x)
         else :
-            x = 37/82*np.cos((32*self._pre_u)/(10 + 13*self._pre_u**2 + 6*self._pre_x**2))
-            x += 0.4*self._pre_x
+            p = -1
+            if p == 0:
+                # 学習できる例．
+                x = 37/82*np.cos((32*self._pre_u)/(10 + 13*self._pre_u**2 + 6*self._pre_x**2))
+                x += 0.4*self._pre_x
+            else:
+                # xを切り替え前の2倍にし学習できた例．
+                # siso_change_x2に保存済み．
+                x = 29/40*np.sin((16*self._pre_u + 8*self._pre_x)/(3 + 4*self._pre_u**2 + 4*self._pre_x**2))
+                x += 0.2*(self._pre_u + self._pre_x)
+                x *= 6
+
         return x
 
     def get_init_x(self):
