@@ -112,12 +112,12 @@ def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_le
 
 def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     project_folder = './study/'+study_name
-    test_file    = project_folder+'/data/test.txt'
-    test_ps_file = project_folder+'/data/test_pre_res.txt'
-    train_file     = project_folder+'/data/train.txt'
-    train_ps_file  = project_folder+'/data/train_pre_res.txt'
-    h_hist_file = project_folder+'/history/h.txt'
-    err_file    = project_folder+'/history/error.txt'
+    test_file       = project_folder+'/data/test.txt'
+    test_ps_file    = project_folder+'/data/test_pre_res.txt'
+    train_file      = project_folder+'/data/train.txt'
+    train_ps_file   = project_folder+'/data/train_pre_res.txt'
+    h_hist_file     = project_folder+'/history/h.txt'
+    err_file        = project_folder+'/history/error.txt'
     if not need_rt and os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test')
     if need_rt and os.path.isfile(train_ps_file):

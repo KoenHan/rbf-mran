@@ -20,3 +20,6 @@ def gen_study(study_name):
             os.makedirs(fpath)
     return study_folder
 
+def save_args(args, file):
+    with open(file, 'w') as f :
+        yaml.dump(vars(args), f, default_flow_style=False)

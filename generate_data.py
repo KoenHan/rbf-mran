@@ -33,7 +33,8 @@ def gen_param_file_from_cmd(param_file):
 
     save_param(param, param_file)
 
-def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
+def gen_data(sys_type, train_file, test_file, data_len,
+    ncx=-1, ncu=-1, xb=-1, xa=-1, ub=-1, ua=-1):
     """
     データ自動生成
     Params:
@@ -54,7 +55,15 @@ def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
             n_change_uの略．
             uの生成式を切り替える境目．
             -1ならinfと解釈．
-        
+        xb(int):
+            ncx以前のシステムに用いる式のケース番号．
+        xa(int):
+            ncx以降のシステムに用いる式のケース番号．
+        ub(int):
+            ncu以前のシステムに用いる式のケース番号．
+        ua(int):
+            ncu以降のシステムに用いる式のケース番号．
+
     Returns:
         -(int):
             生成できたかどうか．
@@ -62,13 +71,13 @@ def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
     """
     sys = None
     if sys_type == 'siso':
-        sys = system.siso.SISO(ncx=ncx, ncu=ncu)
+        sys = system.siso.SISO(ncx=ncx, ncu=ncu, xb=xb, xa=xa, ub=ub, ua=ua)
     elif sys_type == 'mimo':
-        sys = system.mimo.MIMO(ncx=ncx, ncu=ncu)
+        sys = system.mimo.MIMO(ncx=ncx, ncu=ncu, xb=xb, xa=xa, ub=ub, ua=ua)
     else :
         print('Generate new data failed: No such system type.\nGot system type: '+sys_type)
         return -1
-    
+
     for fn in [train_file, test_file] :
         fpath = os.path.dirname(fn)
         if not os.path.isdir(fpath):
@@ -88,7 +97,7 @@ def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
 
     print('Generated new train/test data.')
     return 0
-            
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='system type(siso or mimo)', default='siso')

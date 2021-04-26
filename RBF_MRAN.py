@@ -6,7 +6,8 @@ from RBF import RBF
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
-            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, realtime=False):
+            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw,
+            realtime=False, input_delay=0, output_delay=0):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -14,10 +15,12 @@ class RBF_MRAN:
         self._rbf_nu = nu
         self._past_sys_input = [] # 過去のシステム入力
         self._past_sys_input_num = past_sys_input_num
-        self._past_sys_input_limit = nu*past_sys_input_num
+        self._past_sys_input_size = nu*past_sys_input_num
+        self._past_sys_input_limit = self._past_sys_input_size + nu*input_delay
         self._past_sys_output = [] # 過去のシステム出力
         self._past_sys_output_num = past_sys_output_num
-        self._past_sys_output_limit = ny*past_sys_output_num
+        self._past_sys_output_size = ny*past_sys_output_num
+        self._past_sys_output_limit = self._past_sys_output_size + ny*output_delay
 
         # Step 1で使われるパラメータ
         self._E1 = float(E1)
@@ -68,7 +71,7 @@ class RBF_MRAN:
     def _calc_error_criteria(self, input, f, yi):
         """
         Step 1の実装
-        Returns: 
+        Returns:
             -(bool):
                 3つの基準値を満たしているかどうか．
                 満たしているならTrue，そうでないならFalse．
@@ -96,7 +99,7 @@ class RBF_MRAN:
             case = 3
 
         return case, ei, ei_norm, di
-    
+
     def update_rbf(self, input, yi):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
@@ -129,7 +132,7 @@ class RBF_MRAN:
             # Pの更新
             I = np.eye(z)
             self._P = (I - K@PI.T)@self._P + self._q*I
-        
+
         # Step 5
         if o is not None:
             pruned_unit = self._rbf.prune_unit(o, self._Sw, self._delta)
@@ -151,13 +154,17 @@ class RBF_MRAN:
 
         return f
 
+    def _gen_input(self):
+        return np.array(self._past_sys_output[:self._past_sys_output_size]
+            + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
+
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
-            input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
+            input = self._gen_input()
             start = time.time()
             next_y = self.update_rbf(input, yi)
             finish = time.time()
@@ -168,28 +175,28 @@ class RBF_MRAN:
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
         self._past_sys_input.extend(ui)
-        
+
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
-                
+
     def test(self, data):
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
-            input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
+            input = self._gen_input()
             self._test_pre_res.append(self._rbf.calc_f(input))
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
         self._past_sys_input.extend(ui)
-        
+
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
-    
+
     def _save_hist(self, err_file, h_file):
         '''
         誤差履歴，隠れニューロン数履歴の保存
@@ -222,7 +229,7 @@ class RBF_MRAN:
         全履歴から評価指標のMAEを計算
         """
         return sum(self._ei_abs)/len(self._ei_abs)
-    
+
     def calc_mean_update_time(self):
         """
         1回の更新にかかる時間の平均を計算

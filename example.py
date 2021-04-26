@@ -9,7 +9,7 @@ import tqdm
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
 from plot import plot_study
-from utils import load_param, gen_study
+from utils import load_param, gen_study, save_args
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -23,11 +23,20 @@ if __name__ == '__main__':
     parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
     parser.add_argument('-ps', '--plot_start', help='See plot.py/plot_pre_res() doc string.', type=int, default=3500)
     parser.add_argument('-pl', '--plot_len', help='See plot.py/plot_pre_res() doc string.', type=int, default=500)
-    parser.add_argument('-m', '--mode', help='See plot.py/plot_err_hist() code.', type=int, default=1)
+    parser.add_argument('-pm', '--plot_mode', help='See plot.py/plot_err_hist() code.', type=int, default=1)
+    parser.add_argument('-id', '--input_delay', type=int, default=0)
+    parser.add_argument('-od', '--output_delay', type=int, default=0)
+    parser.add_argument('-xb', '--x_before', type=int, default=-1)
+    parser.add_argument('-xa', '--x_after', type=int, default=-1)
+    parser.add_argument('-ub', '--u_before', type=int, default=-1)
+    parser.add_argument('-ua', '--u_after', type=int, default=-1)
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
     study_folder = gen_study(args.study_name)
+
+    # 引数の保存
+    save_args(args, study_folder+'/latest_example_args.yaml')
 
     # データ生成
     train_file = study_folder+'/data/train.txt'
@@ -35,7 +44,8 @@ if __name__ == '__main__':
     if args.gen_new_data or not os.path.isfile(train_file) :
         gen_res = gen_data(
             sys_type=args.sys, train_file=train_file, test_file=test_file,
-            data_len=args.data_len, ncx=args.n_change_x, ncu=args.n_change_u)
+            data_len=args.data_len, ncx=args.n_change_x, ncu=args.n_change_u,
+            xb=args.x_before, xa=args.x_after, ub=args.u_before, ua=args.u_after)
         if gen_res < 0 :
             exit()
 
@@ -63,8 +73,10 @@ if __name__ == '__main__':
         gamma=param['gamma'],
         Nw=param['Nw'],
         Sw=param['Sw'],
-        realtime=args.realtime)
-    
+        realtime=args.realtime,
+        input_delay=args.input_delay, # 入力の遅れステップ
+        output_delay=args.output_delay) # 出力の観測の遅れステップ
+
     # 学習
     print('Start train.')
     for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
@@ -90,11 +102,11 @@ if __name__ == '__main__':
         test_ps_file=study_folder+'/data/test_pre_res.txt',
         train_ps_file=study_folder+'/data/train_pre_res.txt')
     plot_study(
-        study_name=args.study_name, 
+        study_name=args.study_name,
         plot_start=args.plot_start,
         plot_len=args.plot_len,
         need_rt=args.realtime,
-        eh_mode=args.mode)
+        eh_mode=args.plot_mode)
 
 
 
