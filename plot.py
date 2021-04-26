@@ -24,7 +24,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
-    
+
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
     x = [i for i in range(len(data1))]
@@ -54,7 +54,7 @@ def plot_err_hist(err_hist_file, mode=0):
     title = "学習中の誤差 Id"
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
-    if mode == 0 : 
+    if mode == 0 :
         """
         先頭から一定長さだけプロット
         """
@@ -88,7 +88,7 @@ def plot_err_hist(err_hist_file, mode=0):
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
-    
+
 def plot_h(h_hist_file):
     with open(h_hist_file, mode='r') as f:
         data = [int(s.strip()) for s in f.readlines()]

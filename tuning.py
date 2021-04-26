@@ -17,7 +17,7 @@ class Objective(object):
         self.param_file = project_folder+'/model/param.yaml'
         print(self.train_file)
         self.min_MAE = 1e10
-    
+
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
         pson = trial.suggest_int('past_sys_output_num', 2, 2)
@@ -47,11 +47,11 @@ class Objective(object):
             gamma=gamma,
             Nw=Nw,
             Sw=Sw)
-        
+
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
-        
+
         with open(self.test_file, mode='r') as f:
             l = f.readlines()
         datas = [s.strip().split() for s in l]
@@ -66,7 +66,7 @@ class Objective(object):
             # 検証
             for data in datas[int(datas[0][0])+1:] :
                 rbf_mran.test(data)
-                
+
             rbf_mran.save_res(self.err_file, self.h_hist_file, self.pre_res_file)
             save_param({
                     'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,

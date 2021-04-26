@@ -26,6 +26,6 @@ if __name__ == '__main__':
     param['E3'] = -1 # プログラムの都合上追記しとく
 
     save_param(param, project_folder+'/model/trial_id_'+str(args.trial_id)+'.yaml')
-    
+
     cur.close()
     conn.close()

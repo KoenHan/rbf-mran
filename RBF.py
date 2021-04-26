@@ -32,7 +32,7 @@ class RBF:
         self._wk = None # (ny, h)
         self._myu = None # (input_size, h)
         self._sigma = None
-        
+
         self._hidden_unit = [] # 隠れニューロン保存用
         if self._h : # 基本ここで作成しないけど一応書いておく
             for hi in range(self._h):
@@ -53,7 +53,7 @@ class RBF:
 
     def get_h(self):
         return self._h
-    
+
     def _gen_network_from_hidden_unit(self):
         wk = []
         myu = []
@@ -84,7 +84,7 @@ class RBF:
             left += self._input_size
             unit.sigma = chi[left]
             left += 1
-    
+
     def get_param_num(self):
         """
         更新できるパラメータの数 = count(w0) + count(wk) + count(myu) + count(sigma)
@@ -126,7 +126,7 @@ class RBF:
             sigma = sigma
         ))
         self._h += 1
-    
+
     def prune_unit(self, o, Sw, delta):
         """
         隠れニューロンの削除
@@ -183,7 +183,7 @@ class RBF:
         self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
         return self._w0 + self._wk@self._phi
-    
+
     def calc_o(self):
         """
         MRANのStep 5で使われるoの計算
