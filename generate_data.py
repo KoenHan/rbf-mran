@@ -27,7 +27,7 @@ def gen_param_file_from_cmd(param_file):
 
     for p in param.items():
         if p[0] == 'init_h' or p[0] == 'E3' : continue
-        print('Enter '+p[0]+' testue.(Default: '+str(p[1])+')')
+        print('Enter '+p[0]+' value.(Default: '+str(p[1])+')')
         tmp = input('>> ')
         if tmp : param[p[0]] = type(p[1])(tmp)
 
@@ -64,7 +64,7 @@ def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
     if sys_type == 'siso':
         sys = system.siso.SISO(ncx=ncx, ncu=ncu)
     elif sys_type == 'mimo':
-        sys = system.mimo.MIMO()
+        sys = system.mimo.MIMO(ncx=ncx, ncu=ncu)
     else :
         print('Generate new data failed: No such system type.\nGot system type: '+sys_type)
         return -1
@@ -94,8 +94,10 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--sys', help='system type(siso or mimo)', default='siso')
     parser.add_argument('-tr', '--train_file', default='train.txt')
     parser.add_argument('-te', '--test_file', default='test.txt')
+    parser.add_argument('-ncx', '--n_change_x', help='xが切り替わるnの指定', type=int, default=-1)
+    parser.add_argument('-ncu', '--n_change_u', help='uが切り替わるnの指定', type=int, default=-1)
     args = parser.parse_args()
 
     train_file = './data/'+args.sys+'/'+args.train_file
     test_file = './data/'+args.sys+'/'+args.test_file
-    a = gen_data(args.sys, train_file, test_file)
+    a = gen_data(args.sys, train_file, test_file, args.n_change_x, args.n_change_u)

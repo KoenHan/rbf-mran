@@ -6,11 +6,15 @@ class MIMO:
     """
     p.59 BM-3
     """
-    def __init__(self, ix=[0, 0], iu=[-1, -1]):
+    def __init__(self, ix=[0, 0], iu=[-1, -1], ncx=-1, ncu=-1):
         self._init_x = ix
         self._pre_x = [ix]
         self._pre_u = iu
         self._pre_x_limit = 2
+
+        # x, uの生成式を切り替える境目
+        self._n_change_x = ncx if ncx >= 0 else np.inf
+        self._n_change_u = ncu if ncu >= 0 else np.inf
 
         self._T = 1000
         self._A_a = None
@@ -24,9 +28,14 @@ class MIMO:
         x = [0, 0]
         if n < 2 : return self._init_x
         # pre_xは後ろから追加されるので先頭がx(i-2)
-        x[0] = (15*self._pre_u[0]*self._pre_x[0][1])/(2 + 50*self._pre_u[0]**2) 
-        x[0] += 0.5*self._pre_u[0] - 0.25*self._pre_x[0][1] + 0.1
-        x[1] = (np.sin(np.pi*self._pre_u[1]*self._pre_x[0][0]) + 2*self._pre_u[1])/3
+        elif n < self._n_change_x :
+            x[0] = (15*self._pre_u[0]*self._pre_x[0][1])/(2 + 50*self._pre_u[0]**2) 
+            x[0] += 0.5*self._pre_u[0] - 0.25*self._pre_x[0][1] + 0.1
+            x[1] = (np.sin(np.pi*self._pre_u[1]*self._pre_x[0][0]) + 2*self._pre_u[1])/3
+        else :
+            x[0] = (30*self._pre_u[0]*self._pre_x[0][1])/(17 + 20*self._pre_u[0]**2 + self._pre_x[1][1]) 
+            x[0] += 0.25*self._pre_u[0] - 0.70*self._pre_x[1][1] - 1.2
+            x[1] = (np.sin(np.pi*self._pre_x[0][0]*self._pre_x[1][0]) + 10*self._pre_u[1])/7
         return x
     
     def get_init_x(self):

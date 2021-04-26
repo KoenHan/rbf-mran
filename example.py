@@ -13,11 +13,16 @@ from utils import load_param, gen_study
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
-    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data. Default: False.', action='store_true')
     parser.add_argument('-sn', '--study_name', required=True)
-    parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数', type=int, default=5000)
-    parser.add_argument('-pf', '--param_file', default='param.yaml')
-    parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False', action='store_true')
+    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data. Default: False.', action='store_true')
+    parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数．', type=int, default=5000)
+    parser.add_argument('-ncx', '--n_change_x', help='xが切り替わるnの指定．', type=int, default=-1)
+    parser.add_argument('-ncu', '--n_change_u', help='uが切り替わるnの指定．', type=int, default=-1)
+    parser.add_argument('-pf', '--param_file', help='モデル初期化の際に用いるハイパーパラメータファイル名．', default='param.yaml')
+    parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
+    parser.add_argument('-ps', '--plot_start', help='See plot.py/plot_pre_res() doc string.', type=int, default=3500)
+    parser.add_argument('-pl', '--plot_len', help='See plot.py/plot_pre_res() doc string.', type=int, default=500)
+    parser.add_argument('-m', '--mode', help='See plot.py/plot_err_hist() code.', type=int, default=1)
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
@@ -27,7 +32,9 @@ if __name__ == '__main__':
     train_file = study_folder+'/data/train.txt'
     test_file = study_folder+'/data/test.txt'
     if args.gen_new_data or not os.path.isfile(train_file) :
-        gen_res = gen_data(args.sys, train_file, test_file, args.data_len)
+        gen_res = gen_data(
+            sys_type=args.sys, train_file=train_file, test_file=test_file,
+            data_len=args.data_len, ncx=args.n_change_x, ncu=args.n_change_u)
         if gen_res < 0 :
             exit()
 
@@ -83,10 +90,10 @@ if __name__ == '__main__':
         train_ps_file=study_folder+'/data/train_pre_res.txt')
     plot_study(
         study_name=args.study_name, 
-        plot_start=3500,
-        plot_len=500,
+        plot_start=args.plot_start,
+        plot_len=args.plot_len,
         need_rt=args.realtime,
-        eh_mode=1)
+        eh_mode=args.mode)
 
 
 

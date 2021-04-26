@@ -51,7 +51,7 @@ def plot_err_hist(err_hist_file, mode=0):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
 
-    title = "誤差 Id"
+    title = "学習中の誤差 Id"
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
     if mode == 0 : 
