@@ -104,24 +104,24 @@ def plot_h(h_hist_file):
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     plt.legend()
 
-def plot_all(err_file, h_hist_file, val_file, pre_res_file, plot_start, plot_len, mode=1):
-    plot_pre_res(val_file, pre_res_file, plot_start, plot_len)
+def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_len, mode=1):
+    plot_pre_res(test_file, pre_res_file, plot_start, plot_len)
     plot_err_hist(err_file, mode=mode)
     plot_h(h_hist_file)
     plt.show()
 
 def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     project_folder = './study/'+study_name
-    val_file    = project_folder+'/data/val.txt'
-    val_ps_file = project_folder+'/data/val_pre_res.txt'
-    rt_file     = project_folder+'/data/train.txt'
-    rt_ps_file  = project_folder+'/data/rt_pre_res.txt'
+    test_file    = project_folder+'/data/test.txt'
+    test_ps_file = project_folder+'/data/test_pre_res.txt'
+    train_file     = project_folder+'/data/train.txt'
+    train_ps_file  = project_folder+'/data/train_pre_res.txt'
     h_hist_file = project_folder+'/history/h.txt'
     err_file    = project_folder+'/history/error.txt'
-    if os.path.isfile(val_ps_file) :
-        plot_pre_res(val_file, val_ps_file, plot_start, plot_len, 'validation')
-    if need_rt and os.path.isfile(rt_ps_file):
-        plot_pre_res(rt_file, rt_ps_file, plot_start, plot_len, 'realtime')
+    if os.path.isfile(test_ps_file) :
+        plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test')
+    if need_rt and os.path.isfile(train_ps_file):
+        plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime')
     plot_err_hist(err_file, mode=eh_mode)
     plot_h(h_hist_file)
     plt.show()

@@ -10,7 +10,7 @@ from utils import save_param
 class Objective(object):
     def __init__(self, project_folder):
         self.train_file = project_folder+'/data/train.txt'
-        self.val_file = project_folder+'/data/val.txt'
+        self.test_file = project_folder+'/data/test.txt'
         self.pre_res_file = project_folder+'/data/pre_res.txt'
         self.err_file = project_folder+'/history/error.txt'
         self.h_hist_file = project_folder+'/history/h.txt'
@@ -52,20 +52,20 @@ class Objective(object):
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
         
-        with open(self.val_file, mode='r') as f:
+        with open(self.test_file, mode='r') as f:
             l = f.readlines()
         datas = [s.strip().split() for s in l]
 
         MAE = rbf_mran.calc_MAE()
         if MAE < self.min_MAE:
             self.min_MAE = MAE
-            with open(self.val_file, mode='r') as f:
+            with open(self.test_file, mode='r') as f:
                 l = f.readlines()
             datas = [s.strip().split() for s in l]
 
             # 検証
             for data in datas[int(datas[0][0])+1:] :
-                rbf_mran.val(data)
+                rbf_mran.test(data)
                 
             rbf_mran.save_res(self.err_file, self.h_hist_file, self.pre_res_file)
             save_param({
@@ -82,7 +82,7 @@ if __name__=="__main__":
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-nt', '--n_trials', type=int, required=True)
-    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data.', action='store_true')
+    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data.', action='store_true')
     parser.add_argument('-dl', '--data_len', type=int, default=5000)
     args = parser.parse_args()
 
@@ -95,9 +95,9 @@ if __name__=="__main__":
 
     # データ生成
     train_file = project_folder+'/data/train.txt'
-    val_file = project_folder+'/data/val.txt'
+    test_file = project_folder+'/data/test.txt'
     if args.gen_new_data or not os.path.isfile(train_file) :
-        gen_res = gen_data(args.sys, train_file, val_file, args.data_len)
+        gen_res = gen_data(args.sys, train_file, test_file, args.data_len)
         if gen_res < 0 :
             exit()
 

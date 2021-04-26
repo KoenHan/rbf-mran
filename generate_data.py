@@ -27,13 +27,13 @@ def gen_param_file_from_cmd(param_file):
 
     for p in param.items():
         if p[0] == 'init_h' or p[0] == 'E3' : continue
-        print('Enter '+p[0]+' value.(Default: '+str(p[1])+')')
+        print('Enter '+p[0]+' testue.(Default: '+str(p[1])+')')
         tmp = input('>> ')
         if tmp : param[p[0]] = type(p[1])(tmp)
 
     save_param(param, param_file)
 
-def gen_data(sys_type, train_file, val_file, data_len, ncx=-1, ncu=-1):
+def gen_data(sys_type, train_file, test_file, data_len, ncx=-1, ncu=-1):
     """
     データ自動生成
     Params:
@@ -42,7 +42,7 @@ def gen_data(sys_type, train_file, val_file, data_len, ncx=-1, ncu=-1):
             sisoかmimoのみ可でそれ以外の場合は何も生成しない．
         train_file(str):
             学習用データ保存先．
-        val_file(str):
+        test_file(str):
             検証用データ保存先．
         data_len(int):
             生成される学習/検証用データの長さ（＝行数）．
@@ -69,7 +69,7 @@ def gen_data(sys_type, train_file, val_file, data_len, ncx=-1, ncu=-1):
         print('Generate new data failed: No such system type.\nGot system type: '+sys_type)
         return -1
     
-    for fn in [train_file, val_file] :
+    for fn in [train_file, test_file] :
         fpath = os.path.dirname(fn)
         if not os.path.isdir(fpath):
             os.makedirs(fpath)
@@ -86,16 +86,16 @@ def gen_data(sys_type, train_file, val_file, data_len, ncx=-1, ncu=-1):
 
                 f.write('\t'.join(map(str, s))+'\n')
 
-    print('Generated new train/val data.')
+    print('Generated new train/test data.')
     return 0
             
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='system type(siso or mimo)', default='siso')
-    parser.add_argument('-tf', '--train_file', default='train.txt')
-    parser.add_argument('-vf', '--val_file', default='val.txt')
+    parser.add_argument('-tr', '--train_file', default='train.txt')
+    parser.add_argument('-te', '--test_file', default='test.txt')
     args = parser.parse_args()
 
     train_file = './data/'+args.sys+'/'+args.train_file
-    val_file = './data/'+args.sys+'/'+args.val_file
-    a = gen_data(args.sys, train_file, val_file)
+    test_file = './data/'+args.sys+'/'+args.test_file
+    a = gen_data(args.sys, train_file, test_file)

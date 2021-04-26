@@ -51,8 +51,8 @@ class RBF_MRAN:
         self._ei_abs = [] # 学習中の誤差履歴(MAE)
         self._Id_hist = [] # 学習中の誤差履歴(式3.16)
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
-        self._rt_pre_res = [] # リアルタイムのシステム同定の結果の保存
-        self._val_pre_res = [] # 検証時の予測結果の保存
+        self._train_pre_res = [] # リアルタイムのシステム同定の結果の保存
+        self._test_pre_res = [] # 検証時の予測結果の保存
 
         self._update_rbf_time = [] # 時間計測
         self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
@@ -163,7 +163,7 @@ class RBF_MRAN:
             finish = time.time()
             self._update_rbf_time.append(finish - start)
             if self.realtime :
-                self._rt_pre_res.append(next_y)
+                self._train_pre_res.append(next_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -173,14 +173,14 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
                 
-    def val(self, data):
+    def test(self, data):
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = np.array(self._past_sys_output + self._past_sys_input, dtype=np.float64)
-            self._val_pre_res.append(self._rbf.calc_f(input))
+            self._test_pre_res.append(self._rbf.calc_f(input))
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -208,14 +208,14 @@ class RBF_MRAN:
             for res in pre_res:
                 f.write('\t'.join(map(str, res.tolist()))+'\n')
 
-    def save_res(self, err_file, h_hist_file, val_ps_file, rt_ps_file):
+    def save_res(self, err_file, h_hist_file, test_ps_file, train_ps_file):
         self._save_hist(err_file, h_hist_file)
-        if len(self._val_pre_res) :
-            self._save_pre_res(self._val_pre_res, val_ps_file)
-            print('Saved validation prediction results as file: '+val_ps_file)
-        if len(self._rt_pre_res) :
-            self._save_pre_res(self._rt_pre_res, rt_ps_file)
-            print('Saved realtime prediction results as file: '+rt_ps_file)
+        if len(self._test_pre_res) :
+            self._save_pre_res(self._test_pre_res, test_ps_file)
+            print('Saved test prediction results as file: '+test_ps_file)
+        if len(self._train_pre_res) :
+            self._save_pre_res(self._train_pre_res, train_ps_file)
+            print('Saved realtime prediction results as file: '+train_ps_file)
 
     def calc_MAE(self):
         """
@@ -245,4 +245,4 @@ if __name__ == "__main__" :
     print('rbf_mran.train() duration[s]: ', str(duration))
     print('mean rbf_mran.update_rbf() duration[s]: ', sum(rbf_mran._update_rbf_time)/len(rbf_mran._update_rbf_time))
     rbf_mran._save_hist('./model/history/siso/error.txt', './model/history/siso/h.txt')
-    rbf_mran.val('./data/siso/val.txt')
+    rbf_mran.test('./data/siso/test.txt')

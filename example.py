@@ -13,7 +13,7 @@ from utils import load_param, gen_study
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
-    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/val data. Default: False.', action='store_true')
+    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data. Default: False.', action='store_true')
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数', type=int, default=5000)
     parser.add_argument('-pf', '--param_file', default='param.yaml')
@@ -25,9 +25,9 @@ if __name__ == '__main__':
 
     # データ生成
     train_file = study_folder+'/data/train.txt'
-    val_file = study_folder+'/data/val.txt'
+    test_file = study_folder+'/data/test.txt'
     if args.gen_new_data or not os.path.isfile(train_file) :
-        gen_res = gen_data(args.sys, train_file, val_file, args.data_len)
+        gen_res = gen_data(args.sys, train_file, test_file, args.data_len)
         if gen_res < 0 :
             exit()
 
@@ -65,22 +65,22 @@ if __name__ == '__main__':
     print('mean rbf_mran.update_rbf() duration[s]: ', rbf_mran.calc_mean_update_time())
     print('Total MAE: ', rbf_mran.calc_MAE())
     
-    with open(val_file, mode='r') as f:
+    with open(test_file, mode='r') as f:
         l = f.readlines()
     datas = [s.strip().split() for s in l]
 
     # 検証
-    print('Start validation.')
+    print('Start test.')
     for data in datas[int(datas[0][0])+1:] :
-        rbf_mran.val(data)
-    print('Validation finished.')
+        rbf_mran.test(data)
+    print('Test finished.')
 
     # 色々保存とプロット
     rbf_mran.save_res(
         err_file=study_folder+'/history/error.txt',
         h_hist_file=study_folder+'/history/h.txt',
-        val_ps_file=study_folder+'/data/val_pre_res.txt',
-        rt_ps_file=study_folder+'/data/rt_pre_res.txt')
+        test_ps_file=study_folder+'/data/test_pre_res.txt',
+        train_ps_file=study_folder+'/data/train_pre_res.txt')
     plot_study(
         study_name=args.study_name, 
         plot_start=3500,
