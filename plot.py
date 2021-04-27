@@ -129,7 +129,7 @@ def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-sn', '--study_name', required=True)
-    parser.add_argument('-ps', '--plot_start', type=int, default=3500)
+    parser.add_argument('-ps', '--plot_start', type=int, default=4300)
     parser.add_argument('-pl', '--plot_len', type=int, default=500)
     parser.add_argument('-m', '--mode', type=int, default=1)
     args = parser.parse_args()
