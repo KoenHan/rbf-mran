@@ -100,13 +100,13 @@ def gen_data(sys_type, train_file, test_file, data_len,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--sys', help='system type(siso or mimo)', default='siso')
-    parser.add_argument('-tr', '--train_file', default='train.txt')
-    parser.add_argument('-te', '--test_file', default='test.txt')
+    parser.add_argument('-s', '--sys', help='system type(siso or mimo)', default='siso', required=True)
+    parser.add_argument('-sn', '--study_name', required=True)
+    parser.add_argument('-dl', '--data_len', type=int, default=1000)
     parser.add_argument('-ncx', '--n_change_x', help='xが切り替わるnの指定', type=int, default=-1)
     parser.add_argument('-ncu', '--n_change_u', help='uが切り替わるnの指定', type=int, default=-1)
     args = parser.parse_args()
 
-    train_file = './data/'+args.sys+'/'+args.train_file
-    test_file = './data/'+args.sys+'/'+args.test_file
-    a = gen_data(args.sys, train_file, test_file, args.n_change_x, args.n_change_u)
+    train_file = './study/'+args.study_name+'/data/train.txt'
+    test_file = './study/'+args.study_name+'/data/test.txt'
+    gen_data(args.sys, train_file, test_file, args.data_len, args.n_change_x, args.n_change_u)

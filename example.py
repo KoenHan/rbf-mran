@@ -49,10 +49,6 @@ if __name__ == '__main__':
         if gen_res < 0 :
             exit()
 
-    with open(train_file, mode='r') as f:
-        l = f.readlines()
-    datas = [list(map(float, s.strip().split())) for s in l]
-
     # パラメータファイル生成or読み込み
     param_file = study_folder+'/model/'+args.param_file
     if args.param_file == 'param.yaml' and not os.path.isfile(param_file) :
@@ -76,6 +72,10 @@ if __name__ == '__main__':
         realtime=args.realtime,
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay) # 出力の観測の遅れステップ
+
+    with open(train_file, mode='r') as f:
+        l = f.readlines()
+    datas = [list(map(float, s.strip().split())) for s in l]
 
     # 学習
     print('Start train.')
