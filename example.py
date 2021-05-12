@@ -55,6 +55,10 @@ if __name__ == '__main__':
         gen_param_file_from_cmd(param_file)
 
     param = load_param(param_file)
+    with open(train_file, mode='r') as f:
+        l = f.readlines()
+    datas = [list(map(float, s.strip().split())) for s in l]
+
     rbf_mran = RBF_MRAN(
         nu=int(datas[2][0]), # システム入力(制御入力)の次元
         ny=int(datas[1][0]), # システム出力ベクトルの次元
@@ -69,13 +73,10 @@ if __name__ == '__main__':
         gamma=param['gamma'],
         Nw=param['Nw'],
         Sw=param['Sw'],
+        kappa=param['kappa'] if param['kappa'] else 1.0,
         realtime=args.realtime,
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay) # 出力の観測の遅れステップ
-
-    with open(train_file, mode='r') as f:
-        l = f.readlines()
-    datas = [list(map(float, s.strip().split())) for s in l]
 
     # 学習
     print('Start train.')

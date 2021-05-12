@@ -6,7 +6,7 @@ from RBF import RBF
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
-            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw,
+            init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
             realtime=False, input_delay=0, output_delay=0):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
@@ -33,7 +33,7 @@ class RBF_MRAN:
         self._past_ei_norm_pow = []
 
         # Step 2で使われるパラメータ
-        self._kappa = 1.0 # とりあえずの値
+        self._kappa = kappa
 
         # Step 4で使われるパラメータ
         #  全部とりあえずの値
