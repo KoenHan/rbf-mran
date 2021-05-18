@@ -73,7 +73,7 @@ if __name__ == '__main__':
         gamma=param['gamma'],
         Nw=param['Nw'],
         Sw=param['Sw'],
-        kappa=param['kappa'] if param['kappa'] else 1.0,
+        kappa=param['kappa'] if 'kappa' in param else 1.0,
         realtime=args.realtime,
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay) # 出力の観測の遅れステップ
