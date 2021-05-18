@@ -38,7 +38,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         ps = plot_start
         pl = plot_len
         for ax_pos in range(311, 314) :
-            ax = fig.add_subplot(ax_pos)
+            ax = fig.add_subplot(ax_pos, xticks=[i for i in range(ps, ps + pl + 1, 100)])
             plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 ")#+os.path.basename(gt_file))
             plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 ")#+os.path.basename(pre_res_file))
             ax.grid()
@@ -72,8 +72,10 @@ def plot_err_hist(err_hist_file, mode=0):
         """
         全部プロット
         """
-        x = [i for i in range(len(y))]
+        len_y = len(y)
+        x = [i for i in range(len_y)]
         fig = plt.figure(title, figsize=(15, 15))
+        plt.xticks([i for i in range(0, len_y + 1, 100)])
         plt.plot(x, y, label=title)
     else :
         """
@@ -93,12 +95,14 @@ def plot_h(h_hist_file):
     with open(h_hist_file, mode='r') as f:
         data = [int(s.strip()) for s in f.readlines()]
 
-    x = [i for i in range(len(data))]
+    len_data = len(data)
+    x = [i for i in range(len_data)]
     y = data
 
     title = "隠れニューロン数 h"
     plot_size = 200
     fig = plt.figure(title, figsize=(15, 15))
+    plt.xticks([i for i in range(0, len_data + 1, 100)])
     plt.plot(x, y, label=title)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
