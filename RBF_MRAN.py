@@ -2,6 +2,8 @@ import numpy as np
 import time
 from copy import deepcopy
 
+DEBUG_CNT = 0
+
 from RBF import RBF
 
 class RBF_MRAN:
@@ -159,6 +161,8 @@ class RBF_MRAN:
             + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
 
     def train(self, data):
+        global DEBUG_CNT
+        DEBUG_CNT += 1
         yi = data[:self._rbf_ny] # 今のシステム出力
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
