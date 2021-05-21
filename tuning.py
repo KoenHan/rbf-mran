@@ -22,14 +22,14 @@ class Objective(object):
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
         pson = trial.suggest_int('past_sys_output_num', 1, 10)
-        E1 = trial.suggest_discrete_uniform('E1', 0, 1.0, 1e-4)
-        E2 = trial.suggest_discrete_uniform('E2', 0, 1.0, 1e-4)
-        E3_max = trial.suggest_discrete_uniform('E3_max', 0, 5.0, 1e-4)
-        E3_min = trial.suggest_discrete_uniform('E3_min', 0, E3_max, 1e-4)
-        gamma = trial.suggest_discrete_uniform('gamma', 0.90, 1.0, 0.001)
+        E1 = trial.suggest_discrete_uniform('E1', 0, 0.1, 1e-3)
+        E2 = trial.suggest_discrete_uniform('E2', 0, 0.3, 1e-3)
+        E3_max = trial.suggest_discrete_uniform('E3_max', 3.0, 5.0, 1e-3)
+        E3_min = trial.suggest_discrete_uniform('E3_min', 2.0, E3_max, 1e-3)
+        gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 1e-3)
         kappa = trial.suggest_int('kappa', 1, 100)
-        Nw = trial.suggest_int('Nw', 1, 80)
-        Sw = trial.suggest_int('Sw', 1, 80)
+        Nw = trial.suggest_int('Nw', 15, 80)
+        Sw = trial.suggest_int('Sw', 15, 80)
 
         with open(self.train_file, mode='r') as f:
             l = f.readlines()
@@ -60,7 +60,7 @@ class Objective(object):
             self.min_MAE = MAE
             save_param({
                     'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,
-                    'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'init_h': 0,
+                    'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'kappa': kappa, 'init_h': 0,
                     'past_sys_input_num': psin, 'past_sys_output_num': pson
                 },
                 self.param_file)

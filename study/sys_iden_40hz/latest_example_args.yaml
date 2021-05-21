@@ -10,7 +10,7 @@ plot_mode: 1
 plot_start: 0
 realtime: true
 study_name: sys_iden_40hz
-sys: siso
+sys: mimo
 u_after: -1
 u_before: -1
 x_after: -1
