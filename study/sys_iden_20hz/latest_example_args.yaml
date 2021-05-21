@@ -4,7 +4,7 @@ input_delay: 0
 n_change_u: -1
 n_change_x: -1
 output_delay: 0
-param_file: param_by_optuna.yaml
+param_file: param.yaml
 plot_len: 600
 plot_mode: 1
 plot_start: 0

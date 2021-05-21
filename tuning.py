@@ -1,4 +1,5 @@
 import os
+import time
 import optuna
 import argparse
 
@@ -21,12 +22,12 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 10)
+        pson = trial.suggest_int('past_sys_output_num', 1, 5)
         E1 = trial.suggest_discrete_uniform('E1', 0, 0.1, 1e-3)
         E2 = trial.suggest_discrete_uniform('E2', 0, 0.3, 1e-3)
-        E3_max = trial.suggest_discrete_uniform('E3_max', 3.0, 5.0, 1e-3)
-        E3_min = trial.suggest_discrete_uniform('E3_min', 2.0, E3_max, 1e-3)
-        gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 1e-3)
+        E3_max = trial.suggest_discrete_uniform('E3_max', 2.0, 5.0, 0.1)
+        E3_min = trial.suggest_discrete_uniform('E3_min', 2.0, E3_max, 0.1)
+        gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
         kappa = trial.suggest_int('kappa', 1, 100)
         Nw = trial.suggest_int('Nw', 15, 80)
         Sw = trial.suggest_int('Sw', 15, 80)
@@ -51,9 +52,13 @@ class Objective(object):
             Nw=Nw,
             Sw=Sw)
 
+        start = time.time()
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
+            if time.time() - start > 35: # 1759*0.020
+                print("Timeout...")
+                return 1e5 # 時間がかかりすぎているので中止
 
         MAE = rbf_mran.calc_MAE()
         if MAE < self.min_MAE:
