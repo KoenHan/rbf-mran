@@ -2,8 +2,6 @@ import numpy as np
 import time
 from copy import deepcopy
 
-DEBUG_CNT = 0
-
 from RBF import RBF
 
 class RBF_MRAN:
@@ -39,7 +37,7 @@ class RBF_MRAN:
 
         # Step 4で使われるパラメータ
         #  全部とりあえずの値
-        self._p0 = 1.0
+        self._p0 = 1
         self._P = np.eye(self._rbf.get_param_num())
         self._q = 0.1
         self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ
@@ -152,8 +150,6 @@ class RBF_MRAN:
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
 
-        # memo: ネットワークパラメータを何かのファイルに保存?
-
         return f
 
     def _gen_input(self):
@@ -161,8 +157,6 @@ class RBF_MRAN:
             + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
 
     def train(self, data):
-        global DEBUG_CNT
-        DEBUG_CNT += 1
         yi = data[:self._rbf_ny] # 今のシステム出力
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
@@ -170,11 +164,11 @@ class RBF_MRAN:
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = self._gen_input()
             start = time.time()
-            next_y = self.update_rbf(input, yi)
+            now_y = self.update_rbf(input, yi)
             finish = time.time()
             self._update_rbf_time.append(finish - start)
             if self.realtime :
-                self._train_pre_res.append(next_y)
+                self._train_pre_res.append(now_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]

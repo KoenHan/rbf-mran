@@ -31,7 +31,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
     for d_ax in range(ny):
         y1 = [d[d_ax] for d in data1]
         y2 = [d[d_ax] for d in data2]
-        # y2の方は予測結果なので，ny*past_sys_input_numだけ遅れるので適宜埋める
+        # y2の方は予測結果なので，past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
         fig = plt.figure(title+'_x'+str(d_ax), figsize=(15, 15))
@@ -39,8 +39,8 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         pl = plot_len
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos, xticks=[i for i in range(ps, ps + pl + 1, 100)])
-            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 ")#+os.path.basename(gt_file))
-            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 ")#+os.path.basename(pre_res_file))
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+os.path.basename(gt_file))
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+os.path.basename(pre_res_file))
             ax.grid()
             ps += pl
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
