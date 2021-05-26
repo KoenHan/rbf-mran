@@ -37,9 +37,9 @@ class RBF_MRAN:
 
         # Step 4で使われるパラメータ
         #  全部とりあえずの値
-        self._p0 = 1
+        self._p0 = 1000
         self._P = np.eye(self._rbf.get_param_num())
-        self._q = 0.1
+        self._q = 100
         self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ
 
         # Step 5で使われるパラメータ
@@ -233,6 +233,20 @@ class RBF_MRAN:
         1回の更新にかかる時間の平均を計算
         """
         return sum(self._update_rbf_time)/len(self._update_rbf_time)
+
+    def get_rbf(self):
+        """
+        rbfのネットワークのパラメータを返す
+        パラメータを外部に渡すだけなので例外的にprivateメンバ変数に直接アクセスしている
+        """
+        self._rbf._gen_network_from_hidden_unit()
+        dict = {
+            'w0' : self._rbf._w0,
+            'wk' : self._rbf._wk,
+            'myu' : self._rbf._myu,
+            'sigma' : self._rbf._sigma}
+
+        return dict
 
 if __name__ == "__main__" :
     np.set_printoptions(precision=6, suppress=True)

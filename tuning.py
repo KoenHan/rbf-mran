@@ -22,15 +22,15 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 5)
-        E1 = trial.suggest_discrete_uniform('E1', 0, 0.1, 1e-3)
-        E2 = trial.suggest_discrete_uniform('E2', 0, 0.3, 1e-3)
-        E3_max = trial.suggest_discrete_uniform('E3_max', 2.0, 5.0, 0.1)
-        E3_min = trial.suggest_discrete_uniform('E3_min', 2.0, E3_max, 0.1)
-        gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
-        kappa = trial.suggest_int('kappa', 1, 100)
-        Nw = trial.suggest_int('Nw', 15, 80)
-        Sw = trial.suggest_int('Sw', 15, 80)
+        pson = trial.suggest_int('past_sys_output_num', 1, 3)
+        E1 = trial.suggest_discrete_uniform('E1', 0, 0.01, 1e-3)
+        E2 = trial.suggest_discrete_uniform('E2', 0, 0.01, 1e-3)
+        E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
+        E3_min = trial.suggest_discrete_uniform('E3_min', 0.3, E3_max, 0.1)
+        gamma = trial.suggest_discrete_uniform('gamma', 0.96, 1.0, 0.01)
+        kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        Nw = trial.suggest_int('Nw', 10, 80)
+        Sw = trial.suggest_int('Sw', 10, 80)
 
         with open(self.train_file, mode='r') as f:
             l = f.readlines()
@@ -56,7 +56,7 @@ class Objective(object):
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
-            if time.time() - start > 35: # 1759*0.020
+            if time.time() - start > 39: # 3900*0.010
                 print("Timeout...")
                 return 1e5 # 時間がかかりすぎているので中止
 
@@ -89,7 +89,7 @@ class Objective(object):
 
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
+    parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)')
     parser.add_argument('-sn', '--study_name', required=True)
     parser.add_argument('-nt', '--n_trials', type=int, required=True)
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data.', action='store_true')

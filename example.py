@@ -5,6 +5,7 @@
 import argparse
 import os
 import tqdm
+import numpy as np
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
@@ -95,6 +96,17 @@ if __name__ == '__main__':
         for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
             rbf_mran.test(data)
         print('Test finished.')
+
+    os.remove('tmp.txt')
+    def savetxt(fh, array):
+        np.savetxt(fh, array, fmt='% .18e', delimiter = "\t")
+        fh.write("\n")
+    param = rbf_mran.get_rbf()
+    with open('tmp.txt', 'a') as f :
+        savetxt(f, param['w0'])
+        savetxt(f, param['wk'])
+        savetxt(f, param['myu'])
+        savetxt(f, param['sigma'])
 
     # 色々保存とプロット
     rbf_mran.save_res(
