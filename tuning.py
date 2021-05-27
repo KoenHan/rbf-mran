@@ -23,12 +23,14 @@ class Objective(object):
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
         pson = trial.suggest_int('past_sys_output_num', 1, 3)
-        E1 = trial.suggest_discrete_uniform('E1', 0, 0.01, 1e-3)
-        E2 = trial.suggest_discrete_uniform('E2', 0, 0.01, 1e-3)
+        E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
+        E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
         E3_min = trial.suggest_discrete_uniform('E3_min', 0.3, E3_max, 0.1)
         gamma = trial.suggest_discrete_uniform('gamma', 0.96, 1.0, 0.01)
         kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
+        q = trial.suggest_discrete_uniform('q', 0.1, 10, 0.1)
         Nw = trial.suggest_int('Nw', 10, 80)
         Sw = trial.suggest_int('Sw', 10, 80)
 
@@ -48,6 +50,8 @@ class Objective(object):
             E3_max=E3_max,
             E3_min=E3_min,
             kappa=kappa,
+            p0=p0,
+            q=q,
             gamma=gamma,
             Nw=Nw,
             Sw=Sw)
@@ -66,7 +70,7 @@ class Objective(object):
             save_param({
                     'E1': E1, 'E2': E2, 'E3': -1, 'E3_max': E3_max, 'E3_min': E3_min,
                     'Nw': Nw, 'Sw': Sw, 'gamma': gamma, 'kappa': kappa, 'init_h': 0,
-                    'past_sys_input_num': psin, 'past_sys_output_num': pson
+                    'p0': p0, 'q': q, 'past_sys_input_num': psin, 'past_sys_output_num': pson
                 },
                 self.param_file)
 

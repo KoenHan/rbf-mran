@@ -7,7 +7,7 @@ from RBF import RBF
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
             init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
-            realtime=False, input_delay=0, output_delay=0):
+            p0=1, q=0.1, realtime=False, input_delay=0, output_delay=0):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -37,9 +37,9 @@ class RBF_MRAN:
 
         # Step 4で使われるパラメータ
         #  全部とりあえずの値
-        self._p0 = 1000
+        self._p0 = p0
         self._P = np.eye(self._rbf.get_param_num())
-        self._q = 100
+        self._q = q
         self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ
 
         # Step 5で使われるパラメータ
