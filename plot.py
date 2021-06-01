@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import argparse
 import os
 
+LINEWIDTH = 0.8
+
 def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
     """
     指定区間内の真値と予測値をプロットするプログラム．
@@ -26,6 +28,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
 
     ax_name = ['x', 'y', 'z', 'w', 'ロールレート', 'ピッチレート', 'ヨーレート']
+    ax_png_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
 
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
@@ -36,24 +39,37 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         # y2の方は予測結果なので，past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
-        fig = plt.figure(title+'_x'+str(d_ax), figsize=(15, 15))
+        fig = plt.figure(title+'_x'+str(d_ax), figsize=(15, 3))
         ps = plot_start
         pl = plot_len
+        '''
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos, xticks=[i for i in range(ps, ps + pl + 1, 100)])
-            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値 "+os.path.basename(gt_file))
-            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推測値 "+os.path.basename(pre_res_file))
+            plt.plot(x[ps:ps+pl], y1[ps:ps+pl], linewidth=LINEWIDTH, label="実測値 ")#+os.path.basename(gt_file))
+            plt.plot(x[ps:ps+pl], y2[ps:ps+pl], linewidth=LINEWIDTH, label="推定値 ")#+os.path.basename(pre_res_file))
             ax.grid()
             ps += pl
-        plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
+        '''
+        # ''' レジュメ用フォーマット
+        plt.xticks([i for i in range(ps, ps + pl + 1, 100)])
+        plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値", linewidth=LINEWIDTH)
+        plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推定値", linewidth=LINEWIDTH)
+        if d_ax == 3 :
+            plt.ylim(0.9975, 1.00005)
+        plt.grid()
+        plt.subplots_adjust(left=0.05, right=0.99, bottom=0.2, top=0.99)
         plt.legend()
-        plt.title(ax_name[d_ax], y=-0.3)
+        plt.title(ax_name[d_ax], y=-0.2)
+        plt.savefig('fig/'+ax_png_name[d_ax]+'.png')
+        # '''
 
 def plot_err_hist(err_hist_file, mode=0):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
 
     title = "学習中の誤差 Id"
+    width = 15
+    height = 3
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
     if mode == 0 :
@@ -63,7 +79,7 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(len(y))]
 
         plot_size = 200
-        fig = plt.figure(title, figsize=(15, 15))
+        fig = plt.figure(title, figsize=(width, height))
         ax = fig.add_subplot(311)
         plt.plot(x[:plot_size], y[:plot_size], label=title)
         ax = fig.add_subplot(312)
@@ -76,9 +92,9 @@ def plot_err_hist(err_hist_file, mode=0):
         """
         len_y = len(y)
         x = [i for i in range(len_y)]
-        fig = plt.figure(title, figsize=(15, 15))
-        plt.xticks([i for i in range(0, len_y + 1, 100)])
-        plt.plot(x, y, label=title)
+        fig = plt.figure(title, figsize=(width, height))
+        plt.xticks([i for i in range(0, len_y + 1, 300)])
+        plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     else :
         """
         一定間隔ごとプロット
@@ -87,11 +103,13 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(0, len(y), gap)]
         y = y[::gap]
 
-        fig = plt.figure(title, figsize=(15, 3))
+        fig = plt.figure(title, figsize=(width, height))
         plt.plot(x, y, label=title)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
-    plt.legend()
+    # plt.legend()
+    # plt.title(title, y=-0.25)
+    plt.savefig('fig/id_hist.png')
 
 def plot_h(h_hist_file):
     with open(h_hist_file, mode='r') as f:
@@ -103,12 +121,15 @@ def plot_h(h_hist_file):
 
     title = "隠れニューロン数 h"
     plot_size = 200
-    fig = plt.figure(title, figsize=(15, 15))
-    plt.xticks([i for i in range(0, len_data + 1, 100)])
-    plt.plot(x, y, label=title)
+    fig = plt.figure(title, figsize=(15, 3))
+    plt.xticks([i for i in range(0, len_data + 1, 300)])
+    plt.yticks([i for i in range(0, max(data)+1, 5)])
+    plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
-    plt.legend()
+    # plt.legend()
+    # plt.title(title, y=-0.25)
+    plt.savefig('fig/h_hist.png')
 
 def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_len, mode=1):
     plot_pre_res(test_file, pre_res_file, plot_start, plot_len)
