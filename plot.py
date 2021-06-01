@@ -25,6 +25,8 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
 
+    ax_name = ['x', 'y', 'z', 'w', 'ロールレート', 'ピッチレート', 'ヨーレート']
+
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
     x = [i for i in range(len(data1))]
@@ -45,7 +47,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
             ps += pl
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
         plt.legend()
-        plt.title('軸: x'+str(d_ax), y=-0.3)
+        plt.title(ax_name[d_ax], y=-0.3)
 
 def plot_err_hist(err_hist_file, mode=0):
     with open(err_hist_file, mode='r') as f:

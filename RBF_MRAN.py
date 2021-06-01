@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import random
 from copy import deepcopy
 
 from RBF import RBF
@@ -132,6 +133,7 @@ class RBF_MRAN:
             # Pの更新
             I = np.eye(z)
             self._P = (I - K@PI.T)@self._P + self._q*I
+            # self._P = (I - K@PI.T)@self._P + random.uniform(0, 0.1)*I # todo: 勾配方向のランダムステップの実装
 
         # Step 5
         if o is not None:
