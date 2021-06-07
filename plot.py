@@ -4,8 +4,10 @@ import argparse
 import os
 
 LINEWIDTH = 0.8
+WINWIDTH = 15
+WINHEIGHT = 15
 
-def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
+def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder='./fig/'):
     """
     指定区間内の真値と予測値をプロットするプログラム．
     見やすさを考慮して3段に分けてプロットする．
@@ -27,8 +29,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
 
-    ax_name = ['x', 'y', 'z', 'w', 'ロールレート', 'ピッチレート', 'ヨーレート']
-    ax_png_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
+    ax_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
 
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
@@ -39,18 +40,20 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         # y2の方は予測結果なので，past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
-        fig = plt.figure(title+'_x'+str(d_ax), figsize=(15, 3))
+        fig = plt.figure(title+'_x'+str(d_ax), figsize=(WINWIDTH, WINHEIGHT))
         ps = plot_start
         pl = plot_len
-        '''
+        # '''
         for ax_pos in range(311, 314) :
             ax = fig.add_subplot(ax_pos, xticks=[i for i in range(ps, ps + pl + 1, 100)])
             plt.plot(x[ps:ps+pl], y1[ps:ps+pl], linewidth=LINEWIDTH, label="実測値 ")#+os.path.basename(gt_file))
             plt.plot(x[ps:ps+pl], y2[ps:ps+pl], linewidth=LINEWIDTH, label="推定値 ")#+os.path.basename(pre_res_file))
             ax.grid()
             ps += pl
-        '''
-        # ''' レジュメ用フォーマット
+        plt.title(ax_name[d_ax], y=-0.2)
+        plt.savefig(fig_folder+ax_name[d_ax]+'.png')
+        # '''
+        ''' レジュメ用フォーマット
         plt.xticks([i for i in range(ps, ps + pl + 1, 100)])
         plt.plot(x[ps:ps+pl], y1[ps:ps+pl], label="実測値", linewidth=LINEWIDTH)
         plt.plot(x[ps:ps+pl], y2[ps:ps+pl], label="推定値", linewidth=LINEWIDTH)
@@ -60,16 +63,13 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title):
         plt.subplots_adjust(left=0.05, right=0.99, bottom=0.2, top=0.99)
         plt.legend()
         plt.title(ax_name[d_ax], y=-0.2)
-        plt.savefig('fig/'+ax_png_name[d_ax]+'.png')
-        # '''
+        '''
 
-def plot_err_hist(err_hist_file, mode=0):
+def plot_err_hist(err_hist_file, mode=0, fig_folder='./fig/'):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
 
     title = "学習中の誤差 Id"
-    width = 15
-    height = 3
     Nw = int(data[0])
     y = [np.nan for _ in range(Nw)] + data[1:] # Nwだけ遅れるので適宜埋める
     if mode == 0 :
@@ -79,7 +79,7 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(len(y))]
 
         plot_size = 200
-        fig = plt.figure(title, figsize=(width, height))
+        fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
         ax = fig.add_subplot(311)
         plt.plot(x[:plot_size], y[:plot_size], label=title)
         ax = fig.add_subplot(312)
@@ -92,7 +92,7 @@ def plot_err_hist(err_hist_file, mode=0):
         """
         len_y = len(y)
         x = [i for i in range(len_y)]
-        fig = plt.figure(title, figsize=(width, height))
+        fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
         plt.xticks([i for i in range(0, len_y + 1, 300)])
         plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     else :
@@ -103,15 +103,15 @@ def plot_err_hist(err_hist_file, mode=0):
         x = [i for i in range(0, len(y), gap)]
         y = y[::gap]
 
-        fig = plt.figure(title, figsize=(width, height))
+        fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
         plt.plot(x, y, label=title)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     # plt.legend()
     # plt.title(title, y=-0.25)
-    plt.savefig('fig/id_hist.png')
+    plt.savefig(fig_folder+'id_hist.png')
 
-def plot_h(h_hist_file):
+def plot_h(h_hist_file, fig_folder='./fig/'):
     with open(h_hist_file, mode='r') as f:
         data = [int(s.strip()) for s in f.readlines()]
 
@@ -121,7 +121,7 @@ def plot_h(h_hist_file):
 
     title = "隠れニューロン数 h"
     plot_size = 200
-    fig = plt.figure(title, figsize=(15, 3))
+    fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
     plt.xticks([i for i in range(0, len_data + 1, 300)])
     plt.yticks([i for i in range(0, max(data)+1, 5)])
     plt.plot(x, y, label=title, linewidth=LINEWIDTH)
@@ -129,7 +129,7 @@ def plot_h(h_hist_file):
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     # plt.legend()
     # plt.title(title, y=-0.25)
-    plt.savefig('fig/h_hist.png')
+    plt.savefig(fig_folder+'/h_hist.png')
 
 def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_len, mode=1):
     plot_pre_res(test_file, pre_res_file, plot_start, plot_len)
@@ -145,12 +145,13 @@ def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     train_ps_file   = project_folder+'/data/train_pre_res.txt'
     h_hist_file     = project_folder+'/history/h.txt'
     err_file        = project_folder+'/history/error.txt'
+    fig_folder      = project_folder+'/fig/'
     if not need_rt and os.path.isfile(test_ps_file) :
-        plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test')
+        plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test', fig_folder)
     if need_rt and os.path.isfile(train_ps_file):
-        plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime')
-    plot_err_hist(err_file, mode=eh_mode)
-    plot_h(h_hist_file)
+        plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime', fig_folder)
+    plot_err_hist(err_file, eh_mode, fig_folder)
+    plot_h(h_hist_file, fig_folder)
     plt.show()
 
 if __name__ == "__main__":
