@@ -62,8 +62,8 @@ class RBF:
             wk.append(unit.wk)
             myu.append(unit.myu)
             sigma.append(unit.sigma)
-        self._wk = np.vstack(wk).T
-        self._myu = np.vstack(myu).T
+        self._wk = np.vstack(wk).T if self._h != 0 else np.array([])
+        self._myu = np.vstack(myu).T if self._h != 0 else np.array([])
         self._sigma = np.array(sigma, np.float64)
 
     def gen_chi(self):
