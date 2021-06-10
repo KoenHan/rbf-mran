@@ -1,3 +1,4 @@
+from typing import Any
 import numpy as np
 from copy import deepcopy
 
@@ -7,7 +8,7 @@ class Unit:
     各ニューロンに関連するパラメータをただの行列として保持すると，
     MRANのStep 5でニューロンを消す時にめんどくさくなるのでこのクラスは必要
     """
-    def __init__(self, wk, myu, sigma):
+    def __init__(self, wk: np.ndarray, myu: np.ndarray, sigma: np.ndarray):
         """
         このクラスのメンバー変数はprivate扱いしない
         """
@@ -16,6 +17,17 @@ class Unit:
         self.sigma = sigma
 
         self.past_o = []
+
+    '''
+    # パフォーマンスが悪くなった(学習速度が遅くなった)ので使わない
+    def __setattr__(self, name: str, value: Any) -> None:
+        EPS = 1e-10
+        if name == 'sigma' :
+            if value < EPS : value = EPS
+        elif name == 'past_o' : pass
+        else : value[value < EPS] = EPS
+        object.__setattr__(self, name, value)
+    '''
 
 class RBF:
     """
@@ -74,7 +86,7 @@ class RBF:
 
         return chi
 
-    def update_param_from_chi(self, chi):
+    def update_param_from_chi(self, chi: np.ndarray):
         self._w0 = chi[:self._ny]
         left = self._ny
         for unit in self._hidden_unit:
@@ -99,7 +111,7 @@ class RBF:
         """
         return self._ny + self._input_size + 1
 
-    def get_closest_unit_myu_and_dist(self, xi):
+    def get_closest_unit_myu_and_dist(self, xi: np.ndarray):
         """
         xiに一番近いμとそのμまでの距離を求める
         Args:
@@ -119,7 +131,7 @@ class RBF:
                 di = deepcopy(e)
         return di
 
-    def add_hidden_unit(self, weight, myu, sigma):
+    def add_hidden_unit(self, weight: np.ndarray, myu: np.ndarray, sigma: np.ndarray):
         self._hidden_unit.append(Unit(
             wk = weight,
             myu = myu,
