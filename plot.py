@@ -123,7 +123,7 @@ def plot_h(h_hist_file, fig_folder='./fig/'):
     plot_size = 200
     fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
     plt.xticks([i for i in range(0, len_data + 1, 300)])
-    plt.yticks([i for i in range(0, max(data)+1, 5)])
+    plt.yticks([i for i in range(0, max(data)+1, 1)])
     plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
@@ -137,7 +137,7 @@ def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_le
     plot_h(h_hist_file)
     plt.show()
 
-def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
+def plot_study(study_name, plot_start, plot_len, eh_mode=1):
     project_folder = './study/'+study_name
     test_file       = project_folder+'/data/test.txt'
     test_ps_file    = project_folder+'/data/test_pre_res.txt'
@@ -146,9 +146,9 @@ def plot_study(study_name, plot_start, plot_len, need_rt=False, eh_mode=1):
     h_hist_file     = project_folder+'/history/h.txt'
     err_file        = project_folder+'/history/error.txt'
     fig_folder      = project_folder+'/fig/'
-    if not need_rt and os.path.isfile(test_ps_file) :
+    if os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test', fig_folder)
-    if need_rt and os.path.isfile(train_ps_file):
+    if os.path.isfile(train_ps_file):
         plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime', fig_folder)
     plot_err_hist(err_file, eh_mode, fig_folder)
     plot_h(h_hist_file, fig_folder)
@@ -162,4 +162,4 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--mode', type=int, default=1)
     args = parser.parse_args()
 
-    plot_study(args.study_name, args.plot_start, args.plot_len, args.mode)
+    plot_study(args.study_name, args.plot_start, args.plot_len, eh_mode=args.mode)

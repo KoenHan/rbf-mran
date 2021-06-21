@@ -40,8 +40,9 @@ class RBF_MRAN:
         #  全部とりあえずの値
         self._p0 = p0
         self._P = np.eye(self._rbf.get_param_num())
-        self._q = q
-        self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ
+        self._q = q # 小さくする
+        # self._q = 0.1
+        self._R = 0.001*np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ 大きくする
 
         # Step 5で使われるパラメータ
         self._delta = 0.0001 # p.55

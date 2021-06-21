@@ -120,7 +120,7 @@ if __name__ == '__main__':
         study_name=args.study_name,
         plot_start=args.plot_start,
         plot_len=args.plot_len,
-        need_rt=args.realtime,
+        # need_rt=args.realtime,
         eh_mode=args.plot_mode)
 
 

@@ -22,13 +22,14 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 3)
+        pson = trial.suggest_int('past_sys_output_num', 1, 5)
         E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
         E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
-        E3_min = trial.suggest_discrete_uniform('E3_min', 0.3, E3_max, 0.1)
-        gamma = trial.suggest_discrete_uniform('gamma', 0.96, 1.0, 0.01)
-        kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        E3_min = trial.suggest_discrete_uniform('E3_min', 0.1, E3_max, 0.1)
+        gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
+        # kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        kappa = trial.suggest_int('kappa', 1, 1)
         p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
         q = trial.suggest_discrete_uniform('q', 0.1, 10, 0.1)
         Nw = trial.suggest_int('Nw', 10, 80)
@@ -60,7 +61,7 @@ class Objective(object):
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
-            if time.time() - start > 39: # 3900*0.010
+            if time.time() - start > 44: # 4400*0.010
                 print("Timeout...")
                 return 1e5 # 時間がかかりすぎているので中止
 
