@@ -1,14 +1,16 @@
+import enum
 import numpy as np
 import time
-import random
-from copy import deepcopy
+import os
 
 from RBF import RBF
+from rosgraph.network import is_local_address
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
             init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
-            p0=1, q=0.1, realtime=False, input_delay=0, output_delay=0):
+            p0=1, q=0.1, realtime=False, input_delay=0, output_delay=0,
+            study_folder=None):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -61,6 +63,20 @@ class RBF_MRAN:
 
         self._update_rbf_time = [] # 時間計測
         self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
+
+        # 各種データ保存先
+        self.err_file = study_folder+'/history/error.txt'
+        self.h_hist_file = study_folder+'/history/h.txt'
+        self.test_ps_file = study_folder+'/data/test_pre_res.txt'
+        self.train_ps_file = study_folder+'/data/train_pre_res.txt'
+
+        # 既存のデータファイルの削除
+        for i, file in enumerate([self.err_file, self.h_hist_file, self.test_ps_file, self.train_ps_file]) :
+            if os.path.isfile(file) :
+                os.remove(file)
+            if i == 0 :
+                with open(file, 'w') as f:
+                    f.write(str(self._Nw)+'\n')
 
     def _calc_E3(self):
         # return self._E3
@@ -153,6 +169,9 @@ class RBF_MRAN:
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
 
+        # 履歴の逐次保存
+        self.save_res()
+
         return f
 
     def _gen_input(self):
@@ -172,6 +191,11 @@ class RBF_MRAN:
             self._update_rbf_time.append(finish - start)
             if self.realtime :
                 self._train_pre_res.append(now_y)
+                if len(self._train_pre_res) >= 500 :
+                    with open(self.train_data_file, 'a') as f:
+                        for d in self.data:
+                            f.write('\t'.join(list(map(str, d)))+'\n')
+
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -198,32 +222,36 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
 
-    def _save_hist(self, err_file, h_file):
+    def _save_hist(self, is_last_save=False):
         '''
         誤差履歴，隠れニューロン数履歴の保存
         '''
-        with open(err_file, mode='w') as f:
-            f.write(str(self._Nw)+'\n')
-            f.write('\n'.join(map(str, self._Id_hist))+'\n')
-        with open(h_file, mode='w') as f:
-            f.write('\n'.join(map(str, self._h_hist))+'\n')
+        if len(self._Id_hist) >= 500 or is_last_save :
+            with open(self.err_file, mode='a') as f:
+                f.write('\n'.join(map(str, self._Id_hist))+'\n')
+            self._Id_hist = []
+        if len(self._h_hist) >= 500 or is_last_save :
+            with open(self.h_hist_file, mode='a') as f:
+                f.write('\n'.join(map(str, self._h_hist))+'\n')
+            self._h_hist = []
 
-    def _save_pre_res(self, pre_res, ps_file):
+    def _save_pre_res(self, pre_res, ps_file, is_last_save=False):
         """
         予測結果の保存
         """
-        with open(ps_file, mode='w') as f:
-            for res in pre_res:
-                f.write('\t'.join(map(str, res.tolist()))+'\n')
+        if len(pre_res) >= 500 or is_last_save :
+            with open(ps_file, mode='a') as f:
+                for res in pre_res:
+                    f.write('\t'.join(map(str, res.tolist()))+'\n')
+            pre_res = []
 
-    def save_res(self, err_file, h_hist_file, test_ps_file, train_ps_file):
-        self._save_hist(err_file, h_hist_file)
+    def save_res(self, is_last_save=False):
+        if len(self._h_hist) :
+            self._save_hist(is_last_save)
         if len(self._test_pre_res) :
-            self._save_pre_res(self._test_pre_res, test_ps_file)
-            print('Saved test prediction results as file: '+test_ps_file)
+            self._save_pre_res(self._test_pre_res, self.test_ps_file, is_last_save)
         if len(self._train_pre_res) :
-            self._save_pre_res(self._train_pre_res, train_ps_file)
-            print('Saved realtime prediction results as file: '+train_ps_file)
+            self._save_pre_res(self._train_pre_res, self.train_ps_file, is_last_save)
 
     def calc_MAE(self):
         """

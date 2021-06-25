@@ -29,7 +29,8 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
 
-    ax_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
+    # ax_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
+    ax_name = ['rollrate', 'pitchrate', 'yawrate']
 
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
@@ -146,6 +147,8 @@ def plot_study(study_name, plot_start, plot_len, eh_mode=1):
     h_hist_file     = project_folder+'/history/h.txt'
     err_file        = project_folder+'/history/error.txt'
     fig_folder      = project_folder+'/fig/'
+    if not os.path.isdir(fig_folder) :
+        os.makedirs(fig_folder)
     if os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test', fig_folder)
     if os.path.isfile(train_ps_file):

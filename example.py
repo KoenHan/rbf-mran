@@ -79,7 +79,8 @@ if __name__ == '__main__':
         q=param['q'] if 'q' in param else 0.1,
         realtime=args.realtime,
         input_delay=args.input_delay, # 入力の遅れステップ
-        output_delay=args.output_delay) # 出力の観測の遅れステップ
+        output_delay=args.output_delay,
+        study_folder=study_folder) # 出力の観測の遅れステップ
 
     # 学習
     print('Start train.')
@@ -89,15 +90,14 @@ if __name__ == '__main__':
     print('mean rbf_mran.update_rbf() duration[s]: ', rbf_mran.calc_mean_update_time())
     print('Total MAE: ', rbf_mran.calc_MAE())
 
-    if not args.realtime :
-        with open(test_file, mode='r') as f:
-            l = f.readlines()
-        datas = [s.strip().split() for s in l]
-        # 検証
-        print('Start test.')
-        for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
-            rbf_mran.test(data)
-        print('Test finished.')
+    with open(test_file, mode='r') as f:
+        l = f.readlines()
+    datas = [s.strip().split() for s in l]
+    # 検証
+    print('Start test.')
+    for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
+        rbf_mran.test(data)
+    print('Test finished.')
 
     os.remove('tmp.txt')
     def savetxt(fh, array):
@@ -111,11 +111,7 @@ if __name__ == '__main__':
         savetxt(f, param['sigma'])
 
     # 色々保存とプロット
-    rbf_mran.save_res(
-        err_file=study_folder+'/history/error.txt',
-        h_hist_file=study_folder+'/history/h.txt',
-        test_ps_file=study_folder+'/data/test_pre_res.txt',
-        train_ps_file=study_folder+'/data/train_pre_res.txt')
+    rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
     plot_study(
         study_name=args.study_name,
         plot_start=args.plot_start,

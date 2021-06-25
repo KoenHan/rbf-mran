@@ -61,7 +61,7 @@ class Objective(object):
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
-            if time.time() - start > 44: # 4400*0.010
+            if time.time() - start > 20000*0.010 :
                 print("Timeout...")
                 return 1e5 # 時間がかかりすぎているので中止
 

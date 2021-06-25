@@ -5,10 +5,10 @@ n_change_u: -1
 n_change_x: -1
 output_delay: 0
 param_file: param.yaml
-plot_len: 10
+plot_len: 1000
 plot_mode: 1
 plot_start: 0
-realtime: true
+realtime: false
 study_name: siso
 sys: siso
 u_after: -1
