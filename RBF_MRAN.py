@@ -55,13 +55,19 @@ class RBF_MRAN:
         # p.55の実験に必要
         self._gamma_n = 1
 
-        self._ei_abs = [] # 学習中の誤差履歴(MAE)
+        # self._ei_abs = [] # 学習中の誤差履歴(MAE)
+        self._ei_abs = [0 for _ in range(self._Nw)] # 全部記録するのはメモリを使いすぎるのでこっちにする
+        self._ei_abs_idx = 0
+        self._ei_abs_sum = 0.0
         self._Id_hist = [] # 学習中の誤差履歴(式3.16)
         self._h_hist = [init_h] # 学習中の隠れニューロン数履歴
         self._train_pre_res = [] # リアルタイムのシステム同定の結果の保存
         self._test_pre_res = [] # 検証時の予測結果の保存
 
-        self._update_rbf_time = [] # 時間計測
+        self._total_MAE = 0.0 # 学習全体のMAE計算用
+        self._cnt_train_num = 0 # 学習回数のカウント（学習全体のMAE計算時に用いる）
+        # self._update_rbf_time = [] # 時間計測
+        self._update_rbf_time_sum = 0.0 # 時間計測
         self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
 
         # 各種データ保存先
@@ -118,6 +124,7 @@ class RBF_MRAN:
 
         return case, ei, ei_norm, di
 
+    @profile
     def update_rbf(self, input, yi):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
@@ -162,12 +169,24 @@ class RBF_MRAN:
                     np.delete(self._P, slice(start, start+self._z1), 0),
                     slice(start, start+self._z1), 1)
 
+        # 更新が終わったのでインクリメント
+        self._cnt_train_num += 1
+
         # 学習中の誤差（式3.16）の算出及び保存
-        self._ei_abs.append(ei_norm)
-        if len(self._ei_abs) >= self._Nw:
-            self._Id_hist.append(sum(self._ei_abs[-self._Nw:])/self._Nw)
+        # self._ei_abs.append(ei_norm)
+        # if len(self._ei_abs) >= self._Nw:
+        #     self._Id_hist.append(sum(self._ei_abs[-self._Nw:])/self._Nw)
+        idx = self._ei_abs_idx%self._Nw
+        self._ei_abs_sum -= self._ei_abs[idx]
+        self._ei_abs_sum += ei_norm
+        self._ei_abs[idx] = ei_norm
+        self._ei_abs_idx += 1
+        if self._ei_abs_idx >= self._Nw :
+            self._Id_hist.append(self._ei_abs_sum/self._Nw)
         # 学習中の隠れニューロン数保存
         self._h_hist.append(self._rbf.get_h())
+        # 学習全体のMAEの計算のために合計を取る
+        self._total_MAE += ei_norm
 
         # 履歴の逐次保存
         self.save_res()
@@ -188,14 +207,14 @@ class RBF_MRAN:
             start = time.time()
             now_y = self.update_rbf(input, yi)
             finish = time.time()
-            self._update_rbf_time.append(finish - start)
+            # self._update_rbf_time.append(finish - start)
+            self._update_rbf_time_sum += finish - start
             if self.realtime :
                 self._train_pre_res.append(now_y)
                 if len(self._train_pre_res) >= 500 :
                     with open(self.train_data_file, 'a') as f:
                         for d in self.data:
                             f.write('\t'.join(list(map(str, d)))+'\n')
-
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]
@@ -224,7 +243,7 @@ class RBF_MRAN:
 
     def _save_hist(self, is_last_save=False):
         '''
-        誤差履歴，隠れニューロン数履歴の保存
+        誤差履歴，隠れニューロン数履歴の逐次保存
         '''
         if len(self._Id_hist) >= 500 or is_last_save :
             with open(self.err_file, mode='a') as f:
@@ -237,7 +256,7 @@ class RBF_MRAN:
 
     def _save_pre_res(self, pre_res, ps_file, is_last_save=False):
         """
-        予測結果の保存
+        予測結果の逐次保存
         """
         if len(pre_res) >= 500 or is_last_save :
             with open(ps_file, mode='a') as f:
@@ -257,13 +276,15 @@ class RBF_MRAN:
         """
         全履歴から評価指標のMAEを計算
         """
-        return sum(self._ei_abs)/len(self._ei_abs)
+        # return sum(self._ei_abs)/len(self._ei_abs)
+        return self._total_MAE/self._cnt_train_num
 
     def calc_mean_update_time(self):
         """
         1回の更新にかかる時間の平均を計算
         """
-        return sum(self._update_rbf_time)/len(self._update_rbf_time)
+        # return sum(self._update_rbf_time)/len(self._update_rbf_time)
+        return self._update_rbf_time_sum/self._cnt_train_num
 
     def get_rbf(self):
         """
