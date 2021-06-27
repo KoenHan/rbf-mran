@@ -44,7 +44,7 @@ class RBF_MRAN:
         self._P = np.eye(self._rbf.get_param_num())
         self._q = q # 小さくする
         # self._q = 0.1
-        self._R = 0.001*np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ 大きくする
+        self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ 大きくする
 
         # Step 5で使われるパラメータ
         self._delta = 0.0001 # p.55
@@ -68,16 +68,16 @@ class RBF_MRAN:
         self._cnt_train_num = 0 # 学習回数のカウント（学習全体のMAE計算時に用いる）
         # self._update_rbf_time = [] # 時間計測
         self._update_rbf_time_sum = 0.0 # 時間計測
-        self.realtime = realtime # リアルタイムのシステム同定の場合のフラグ
+        self._realtime = realtime # リアルタイムのシステム同定の場合のフラグ
 
         # 各種データ保存先
-        self.err_file = study_folder+'/history/error.txt'
-        self.h_hist_file = study_folder+'/history/h.txt'
-        self.test_ps_file = study_folder+'/data/test_pre_res.txt'
-        self.train_ps_file = study_folder+'/data/train_pre_res.txt'
+        self._err_file = study_folder+'/history/error.txt'
+        self._h_hist_file = study_folder+'/history/h.txt'
+        self._test_ps_file = study_folder+'/data/test_pre_res.txt'
+        self._train_ps_file = study_folder+'/data/train_pre_res.txt'
 
         # 既存のデータファイルの削除
-        for i, file in enumerate([self.err_file, self.h_hist_file, self.test_ps_file, self.train_ps_file]) :
+        for i, file in enumerate([self._err_file, self._h_hist_file, self._test_ps_file, self._train_ps_file]) :
             if os.path.isfile(file) :
                 os.remove(file)
             if i == 0 :
@@ -124,7 +124,6 @@ class RBF_MRAN:
 
         return case, ei, ei_norm, di
 
-    @profile
     def update_rbf(self, input, yi):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
@@ -209,7 +208,7 @@ class RBF_MRAN:
             finish = time.time()
             # self._update_rbf_time.append(finish - start)
             self._update_rbf_time_sum += finish - start
-            if self.realtime :
+            if self._realtime :
                 self._train_pre_res.append(now_y)
                 if len(self._train_pre_res) >= 500 :
                     with open(self.train_data_file, 'a') as f:
@@ -246,11 +245,11 @@ class RBF_MRAN:
         誤差履歴，隠れニューロン数履歴の逐次保存
         '''
         if len(self._Id_hist) >= 500 or is_last_save :
-            with open(self.err_file, mode='a') as f:
+            with open(self._err_file, mode='a') as f:
                 f.write('\n'.join(map(str, self._Id_hist))+'\n')
             self._Id_hist = []
         if len(self._h_hist) >= 500 or is_last_save :
-            with open(self.h_hist_file, mode='a') as f:
+            with open(self._h_hist_file, mode='a') as f:
                 f.write('\n'.join(map(str, self._h_hist))+'\n')
             self._h_hist = []
 
@@ -268,9 +267,9 @@ class RBF_MRAN:
         if len(self._h_hist) :
             self._save_hist(is_last_save)
         if len(self._test_pre_res) :
-            self._save_pre_res(self._test_pre_res, self.test_ps_file, is_last_save)
+            self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
         if len(self._train_pre_res) :
-            self._save_pre_res(self._train_pre_res, self.train_ps_file, is_last_save)
+            self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
 
     def calc_MAE(self):
         """

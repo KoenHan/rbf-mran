@@ -9,6 +9,7 @@ from utils import save_param, gen_study
 
 class Objective(object):
     def __init__(self, study_folder, realtime):
+        self.study_folder = study_folder
         self.train_file = study_folder+'/data/train.txt'
         self.test_file = study_folder+'/data/test.txt'
         self.train_ps_file = study_folder+'/data/train_pre_res.txt'
@@ -28,10 +29,11 @@ class Objective(object):
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
         E3_min = trial.suggest_discrete_uniform('E3_min', 0.1, E3_max, 0.1)
         gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
-        # kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
-        kappa = trial.suggest_int('kappa', 1, 1)
-        p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
-        q = trial.suggest_discrete_uniform('q', 0.1, 10, 0.1)
+        kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        # kappa = trial.suggest_int('kappa', 1, 1)
+        # p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
+        p0 = trial.suggest_int('p0', 1, 1)
+        q = trial.suggest_discrete_uniform('q', 0.01, 1, 0.01)
         Nw = trial.suggest_int('Nw', 10, 80)
         Sw = trial.suggest_int('Sw', 10, 80)
 
@@ -55,15 +57,19 @@ class Objective(object):
             q=q,
             gamma=gamma,
             Nw=Nw,
-            Sw=Sw)
+            Sw=Sw,
+            study_folder=self.study_folder,
+            realtime=self.realtime)
 
+        print('Start train')
         start = time.time()
         # 学習
         for data in datas[int(datas[0][0])+1:] :
             rbf_mran.train(data)
-            if time.time() - start > 20000*0.010 :
+            if time.time() - start > 3*3600 :
                 print("Timeout...")
                 return 1e5 # 時間がかかりすぎているので中止
+        print('Finish train')
 
         MAE = rbf_mran.calc_MAE()
         if MAE < self.min_MAE:
@@ -75,20 +81,18 @@ class Objective(object):
                 },
                 self.param_file)
 
-            if not self.realtime :
-                with open(self.test_file, mode='r') as f:
-                    l = f.readlines()
-                datas = [s.strip().split() for s in l]
+            # if not self.realtime :
+            with open(self.test_file, mode='r') as f:
+                l = f.readlines()
+            datas = [s.strip().split() for s in l]
 
-                # 検証
-                for data in datas[int(datas[0][0])+1:] :
-                    rbf_mran.test(data)
+            print('Start test')
+            # 検証
+            for data in datas[int(datas[0][0])+1:] :
+                rbf_mran.test(data)
+            print('Finish test')
 
-            rbf_mran.save_res(
-                err_file=self.err_file,
-                h_hist_file=self.h_hist_file,
-                test_ps_file=self.test_ps_file,
-                train_ps_file= self.train_ps_file)
+            rbf_mran.save_res(is_last_save=True)
 
         return MAE
 
