@@ -9,8 +9,7 @@ from rosgraph.network import is_local_address
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
             init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
-            p0=1, q=0.1, realtime=False, input_delay=0, output_delay=0,
-            study_folder=None):
+            p0=1, q=0.1, input_delay=0, output_delay=0, study_folder=None):
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny)
@@ -68,7 +67,6 @@ class RBF_MRAN:
         self._cnt_train_num = 0 # 学習回数のカウント（学習全体のMAE計算時に用いる）
         # self._update_rbf_time = [] # 時間計測
         self._update_rbf_time_sum = 0.0 # 時間計測
-        self._realtime = realtime # リアルタイムのシステム同定の場合のフラグ
 
         # 各種データ保存先
         self._err_file = study_folder+'/history/error.txt'
@@ -206,14 +204,8 @@ class RBF_MRAN:
             start = time.time()
             now_y = self.update_rbf(input, yi)
             finish = time.time()
-            # self._update_rbf_time.append(finish - start)
             self._update_rbf_time_sum += finish - start
-            if self._realtime :
-                self._train_pre_res.append(now_y)
-                if len(self._train_pre_res) >= 500 :
-                    with open(self.train_data_file, 'a') as f:
-                        for d in self.data:
-                            f.write('\t'.join(list(map(str, d)))+'\n')
+            self._train_pre_res.append(now_y)
 
         if len(self._past_sys_input) == self._past_sys_input_limit:
             del self._past_sys_input[:self._rbf_nu]

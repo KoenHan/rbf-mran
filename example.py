@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('-ncx', '--n_change_x', help='xが切り替わるnの指定．', type=int, default=-1)
     parser.add_argument('-ncu', '--n_change_u', help='uが切り替わるnの指定．', type=int, default=-1)
     parser.add_argument('-pf', '--param_file', help='モデル初期化の際に用いるハイパーパラメータファイル名．', default='param.yaml')
-    parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
+    # parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
     parser.add_argument('-ps', '--plot_start', help='See plot.py/plot_pre_res() doc string.', type=int, default=3500)
     parser.add_argument('-pl', '--plot_len', help='See plot.py/plot_pre_res() doc string.', type=int, default=500)
     parser.add_argument('-pm', '--plot_mode', help='See plot.py/plot_err_hist() code.', type=int, default=1)
@@ -77,7 +77,6 @@ if __name__ == '__main__':
         kappa=param['kappa'] if 'kappa' in param else 1.0,
         p0=param['p'] if 'p' in param else 1.0,
         q=param['q'] if 'q' in param else 0.1,
-        realtime=args.realtime,
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay,
         study_folder=study_folder) # 出力の観測の遅れステップ

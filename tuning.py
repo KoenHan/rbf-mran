@@ -8,7 +8,7 @@ from generate_data import gen_data
 from utils import save_param, gen_study
 
 class Objective(object):
-    def __init__(self, study_folder, realtime):
+    def __init__(self, study_folder):
         self.study_folder = study_folder
         self.train_file = study_folder+'/data/train.txt'
         self.test_file = study_folder+'/data/test.txt'
@@ -17,7 +17,6 @@ class Objective(object):
         self.err_file = study_folder+'/history/error.txt'
         self.h_hist_file = study_folder+'/history/h.txt'
         self.param_file = study_folder+'/model/param_by_optuna.yaml'
-        self.realtime =realtime
         print(self.train_file)
         self.min_MAE = 1e10
 
@@ -58,8 +57,7 @@ class Objective(object):
             gamma=gamma,
             Nw=Nw,
             Sw=Sw,
-            study_folder=self.study_folder,
-            realtime=self.realtime)
+            study_folder=self.study_folder)
 
         print('Start train')
         start = time.time()
@@ -81,7 +79,6 @@ class Objective(object):
                 },
                 self.param_file)
 
-            # if not self.realtime :
             with open(self.test_file, mode='r') as f:
                 l = f.readlines()
             datas = [s.strip().split() for s in l]
@@ -103,7 +100,7 @@ if __name__=="__main__":
     parser.add_argument('-nt', '--n_trials', type=int, required=True)
     parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data.', action='store_true')
     parser.add_argument('-dl', '--data_len', type=int, default=5000)
-    parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
+    # parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
@@ -121,7 +118,7 @@ if __name__=="__main__":
         study_name=args.study_name,
         storage='sqlite:///'+study_folder+'/model/param.db',
         load_if_exists=True)
-    study.optimize(Objective(study_folder, args.realtime), n_trials=args.n_trials)
+    study.optimize(Objective(study_folder), n_trials=args.n_trials)
 
     # 最適パラメータの保存
     param = {}
