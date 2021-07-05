@@ -253,15 +253,19 @@ class RBF_MRAN:
             with open(ps_file, mode='a') as f:
                 for res in pre_res:
                     f.write('\t'.join(map(str, res.tolist()))+'\n')
-            pre_res = []
+            return True
+        else :
+            return False
 
     def save_res(self, is_last_save=False):
         if len(self._h_hist) :
             self._save_hist(is_last_save)
         if len(self._test_pre_res) :
-            self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
+            res = self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
+            if res : self._test_pre_res = []
         if len(self._train_pre_res) :
-            self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
+            res = self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
+            if res : self._train_pre_res = []
 
     def calc_MAE(self):
         """

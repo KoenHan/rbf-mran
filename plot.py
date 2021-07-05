@@ -38,6 +38,11 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
     for d_ax in range(ny):
         y1 = [d[d_ax] for d in data1]
         y2 = [d[d_ax] for d in data2]
+
+        # -0.01中心に1.9倍してみたが，完璧には重ならなかったし，
+        # 多分1.9以外にしても全ての方向できれいに重なることはなさそう
+        # for yi in range(len(y2)) :
+        #     y2[yi] = 1.9 *(y2[yi] + 0.01) - 0.01
         # y2の方は予測結果なので，past_sys_input_numだけ遅れるので適宜埋める
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
 
@@ -53,6 +58,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
             ps += pl
         plt.title(ax_name[d_ax], y=-0.2)
         plt.savefig(fig_folder+ax_name[d_ax]+'.png')
+        plt.legend()
         # '''
         ''' レジュメ用フォーマット
         plt.xticks([i for i in range(ps, ps + pl + 1, 100)])
@@ -94,7 +100,7 @@ def plot_err_hist(err_hist_file, mode=0, fig_folder='./fig/'):
         len_y = len(y)
         x = [i for i in range(len_y)]
         fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
-        plt.xticks([i for i in range(0, len_y + 1, 300)])
+        # plt.xticks([i for i in range(0, len_y + 1, 300)])
         plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     else :
         """
@@ -123,8 +129,8 @@ def plot_h(h_hist_file, fig_folder='./fig/'):
     title = "隠れニューロン数 h"
     plot_size = 200
     fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
-    plt.xticks([i for i in range(0, len_data + 1, 300)])
-    plt.yticks([i for i in range(0, max(data)+1, 1)])
+    # plt.xticks([i for i in range(0, len_data + 1, 300)])
+    # plt.yticks([i for i in range(0, max(data)+1, 1)])
     plt.plot(x, y, label=title, linewidth=LINEWIDTH)
     plt.grid()
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
