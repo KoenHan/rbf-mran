@@ -10,7 +10,7 @@ import numpy as np
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
 from plot import plot_study
-from utils import load_param, gen_study, save_args
+from utils import load_param, gen_study, save_args, savetxt
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -31,6 +31,8 @@ if __name__ == '__main__':
     parser.add_argument('-xa', '--x_after', type=int, default=-1)
     parser.add_argument('-ub', '--u_before', type=int, default=-1)
     parser.add_argument('-ua', '--u_after', type=int, default=-1)
+    parser.add_argument('-ih', '--init_h', type=int, default=0) # auto.shで動かすための一時的なオプション
+    parser.add_argument('-np', '--not_plot', action='store_true')
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
@@ -65,7 +67,8 @@ if __name__ == '__main__':
         ny=int(datas[1][0]), # システム出力ベクトルの次元
         past_sys_input_num=param['past_sys_input_num'], # 過去のシステム入力保存数
         past_sys_output_num=param['past_sys_output_num'], # 過去のシステム出力保存数
-        init_h=param['init_h'], # スタート時の隠れニューロン数
+        # init_h=param['init_h'], # スタート時の隠れニューロン数
+        init_h=args.init_h, # スタート時の隠れニューロン数
         E1=param['E1'],
         E2=param['E2'],
         E3=param['E3'],
@@ -89,6 +92,19 @@ if __name__ == '__main__':
     print('mean rbf_mran.update_rbf() duration[s]: ', rbf_mran.calc_mean_update_time())
     print('Total MAE: ', rbf_mran.calc_MAE())
 
+    param = rbf_mran.get_rbf()
+    AFTER_TRAIN = args.study_name + '_after_train.txt'
+    if os.path.isfile(AFTER_TRAIN) :
+        os.remove(AFTER_TRAIN)
+    with open(AFTER_TRAIN, 'w') as f :
+        pass
+    with open(AFTER_TRAIN, 'a') as f :
+        savetxt(f, param['w0'])
+        savetxt(f, param['wk'])
+        savetxt(f, param['myu'])
+        savetxt(f, param['sigma'])
+
+
     with open(test_file, mode='r') as f:
         l = f.readlines()
     datas = [s.strip().split() for s in l]
@@ -98,12 +114,13 @@ if __name__ == '__main__':
         rbf_mran.test(data)
     print('Test finished.')
 
-    os.remove('tmp.txt')
-    def savetxt(fh, array):
-        np.savetxt(fh, array, fmt='% .18e', delimiter = "\t")
-        fh.write("\n")
     param = rbf_mran.get_rbf()
-    with open('tmp.txt', 'a') as f :
+    AFTER_TEST = args.study_name + '_after_test.txt'
+    if os.path.isfile(AFTER_TEST) :
+        os.remove(AFTER_TEST)
+    with open(AFTER_TEST, 'w') as f :
+        pass
+    with open(AFTER_TEST, 'a') as f :
         savetxt(f, param['w0'])
         savetxt(f, param['wk'])
         savetxt(f, param['myu'])
@@ -111,12 +128,13 @@ if __name__ == '__main__':
 
     # 色々保存とプロット
     rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
-    plot_study(
-        study_name=args.study_name,
-        plot_start=args.plot_start,
-        plot_len=args.plot_len,
-        # need_rt=args.realtime,
-        eh_mode=args.plot_mode)
+    if not args.not_plot :
+        plot_study(
+            study_name=args.study_name,
+            plot_start=args.plot_start,
+            plot_len=args.plot_len,
+            # need_rt=args.realtime,
+            eh_mode=args.plot_mode)
 
 
 

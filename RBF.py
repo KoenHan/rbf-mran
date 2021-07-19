@@ -1,6 +1,7 @@
 from typing import Any
 import numpy as np
 from copy import deepcopy
+import random
 
 class Unit:
     """
@@ -47,11 +48,11 @@ class RBF:
 
         self._hidden_unit = [] # 隠れニューロン保存用
         if self._h : # 基本ここで作成しないけど一応書いておく
-            for hi in range(self._h):
+            for _ in range(self._h):
                 self._hidden_unit.append(Unit(
-                    wk = np.array([k for k in range(self._ny)], dtype=np.float64),
-                    myu = np.array([0 for _ in range(self._input_size)], dtype=np.float64),
-                    sigma = 10 + hi
+                    wk = np.array([random.uniform(-10, 10) for _ in range(self._ny)], dtype=np.float64),
+                    myu = np.array([random.uniform(-10, 10) for _ in range(self._input_size)], dtype=np.float64),
+                    sigma = random.uniform(0, 100)
                 ))
             self._gen_network_from_hidden_unit()
 

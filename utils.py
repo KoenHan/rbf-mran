@@ -1,5 +1,10 @@
 import yaml
 import os
+import numpy as np
+
+def savetxt(fh, array):
+    np.savetxt(fh, array, fmt='% .18e', delimiter = "\t")
+    fh.write("\n")
 
 def save_param(param, param_file):
     with open(param_file, 'w') as f:

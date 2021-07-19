@@ -1,8 +1,10 @@
 data_len: 5000
-gen_new_data: true
+gen_new_data: false
+init_h: 100
 input_delay: 0
 n_change_u: -1
 n_change_x: -1
+not_plot: true
 output_delay: 0
 param_file: param.yaml
 plot_len: 500

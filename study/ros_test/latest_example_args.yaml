@@ -1,13 +1,15 @@
 data_len: 5000
 gen_new_data: false
+init_h: 100
 input_delay: 0
 n_change_u: -1
 n_change_x: -1
+not_plot: true
 output_delay: 0
 param_file: param.yaml
-plot_len: 1000
+plot_len: 500
 plot_mode: 1
-plot_start: 327000
+plot_start: 3500
 study_name: ros_test
 sys: mimo
 u_after: -1
