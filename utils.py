@@ -2,7 +2,7 @@ import yaml
 import os
 import numpy as np
 
-def savetxt(fh, array):
+def save_ndarray(fh, array):
     np.savetxt(fh, array, fmt='% .18e', delimiter = "\t")
     fh.write("\n")
 

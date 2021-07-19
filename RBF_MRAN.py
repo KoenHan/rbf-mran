@@ -1,10 +1,9 @@
-import enum
 import numpy as np
 import time
 import os
 
 from RBF import RBF
-from rosgraph.network import is_local_address
+from utils import save_ndarray
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
@@ -73,6 +72,10 @@ class RBF_MRAN:
         self._h_hist_file = study_folder+'/history/h.txt'
         self._test_ps_file = study_folder+'/data/test_pre_res.txt'
         self._train_ps_file = study_folder+'/data/train_pre_res.txt'
+        self._w0_param_file = study_folder+'/model/w0.txt'
+        self._wk_param_file = study_folder+'/model/wk.txt'
+        self._myu_param_file = study_folder+'/model/myu.txt'
+        self._sigma_param_file = study_folder+'/model/sigma.txt'
 
         # 既存のデータファイルの削除
         for i, file in enumerate([self._err_file, self._h_hist_file, self._test_ps_file, self._train_ps_file]) :
@@ -266,6 +269,23 @@ class RBF_MRAN:
         if len(self._train_pre_res) :
             res = self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
             if res : self._train_pre_res = []
+        if is_last_save :
+            self._save_param()
+
+    def _save_param(self):
+        """
+        パラメータの保存
+        パラメータを保存するだけなので例外的にprivateメンバ変数に直接アクセスしている
+        """
+        self._rbf._gen_network_from_hidden_unit()
+        with open(self._w0_param_file, 'w') as f :
+            save_ndarray(f, self._rbf._w0)
+        with open(self._wk_param_file, 'w') as f :
+            save_ndarray(f, self._rbf._wk)
+        with open(self._myu_param_file, 'w') as f :
+            save_ndarray(f, self._rbf._myu)
+        with open(self._sigma_param_file, 'w') as f:
+            save_ndarray(f, self._rbf._sigma)
 
     def calc_MAE(self):
         """

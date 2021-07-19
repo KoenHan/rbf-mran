@@ -10,7 +10,7 @@ import numpy as np
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
 from plot import plot_study
-from utils import load_param, gen_study, save_args, savetxt
+from utils import load_param, gen_study, save_args, save_ndarray
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -99,10 +99,10 @@ if __name__ == '__main__':
     with open(AFTER_TRAIN, 'w') as f :
         pass
     with open(AFTER_TRAIN, 'a') as f :
-        savetxt(f, param['w0'])
-        savetxt(f, param['wk'])
-        savetxt(f, param['myu'])
-        savetxt(f, param['sigma'])
+        save_ndarray(f, param['w0'])
+        save_ndarray(f, param['wk'])
+        save_ndarray(f, param['myu'])
+        save_ndarray(f, param['sigma'])
 
 
     with open(test_file, mode='r') as f:
@@ -121,10 +121,10 @@ if __name__ == '__main__':
     with open(AFTER_TEST, 'w') as f :
         pass
     with open(AFTER_TEST, 'a') as f :
-        savetxt(f, param['w0'])
-        savetxt(f, param['wk'])
-        savetxt(f, param['myu'])
-        savetxt(f, param['sigma'])
+        save_ndarray(f, param['w0'])
+        save_ndarray(f, param['wk'])
+        save_ndarray(f, param['myu'])
+        save_ndarray(f, param['sigma'])
 
     # 色々保存とプロット
     rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
