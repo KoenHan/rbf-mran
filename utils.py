@@ -6,6 +6,9 @@ def save_ndarray(fh, array):
     np.savetxt(fh, array, fmt='% .18e', delimiter = "\t")
     fh.write("\n")
 
+def load_ndarray(fh):
+    return np.loadtxt(fh)
+
 def save_param(param, param_file):
     with open(param_file, 'w') as f:
         yaml.dump(param, f, default_flow_style=False)

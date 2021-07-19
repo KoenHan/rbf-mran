@@ -2,16 +2,40 @@ import numpy as np
 import time
 import os
 
+from numpy.lib import load
+
 from RBF import RBF
-from utils import save_ndarray
+from utils import save_ndarray, load_ndarray
 
 class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
             init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
-            p0=1, q=0.1, input_delay=0, output_delay=0, study_folder=None):
+            p0=1, q=0.1, input_delay=0, output_delay=0, study_folder=None,
+            use_exist_net=False) :
+        # 各種データ保存先
+        self._err_file = study_folder+'/history/error.txt'
+        self._h_hist_file = study_folder+'/history/h.txt'
+        self._test_ps_file = study_folder+'/data/test_pre_res.txt'
+        self._train_ps_file = study_folder+'/data/train_pre_res.txt'
+        self._w0_param_file = study_folder+'/model/w0.txt'
+        self._wk_param_file = study_folder+'/model/wk.txt'
+        self._myu_param_file = study_folder+'/model/myu.txt'
+        self._sigma_param_file = study_folder+'/model/sigma.txt'
+
+        # RBFネットワーク初期化
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
-            input_size = past_sys_input_num*nu + past_sys_output_num*ny)
+            input_size = past_sys_input_num*nu + past_sys_output_num*ny,
+            use_exist_net = use_exist_net)
+        # 既存のネットワークを読み込むときは強制的に上書き
+        # RBFクラスにパス渡すのがめんどくさいので
+        if use_exist_net :
+            self._rbf._w0 = load_ndarray(self._w0_param_file)
+            self._rbf._wk = load_ndarray(self._wk_param_file)
+            self._rbf._myu = load_ndarray(self._myu_param_file)
+            self._rbf._sigma = load_ndarray(self._sigma_param_file)
+            self._rbf._h = self._rbf._wk.shape[1]
+
         self._rbf_ny = ny
         self._rbf_nu = nu
         self._past_sys_input = [] # 過去のシステム入力
@@ -66,16 +90,6 @@ class RBF_MRAN:
         self._cnt_train_num = 0 # 学習回数のカウント（学習全体のMAE計算時に用いる）
         # self._update_rbf_time = [] # 時間計測
         self._update_rbf_time_sum = 0.0 # 時間計測
-
-        # 各種データ保存先
-        self._err_file = study_folder+'/history/error.txt'
-        self._h_hist_file = study_folder+'/history/h.txt'
-        self._test_ps_file = study_folder+'/data/test_pre_res.txt'
-        self._train_ps_file = study_folder+'/data/train_pre_res.txt'
-        self._w0_param_file = study_folder+'/model/w0.txt'
-        self._wk_param_file = study_folder+'/model/wk.txt'
-        self._myu_param_file = study_folder+'/model/myu.txt'
-        self._sigma_param_file = study_folder+'/model/sigma.txt'
 
         # 既存のデータファイルの削除
         for i, file in enumerate([self._err_file, self._h_hist_file, self._test_ps_file, self._train_ps_file]) :

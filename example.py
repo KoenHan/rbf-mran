@@ -33,6 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('-ua', '--u_after', type=int, default=-1)
     parser.add_argument('-ih', '--init_h', type=int, default=0) # auto.shで動かすための一時的なオプション
     parser.add_argument('-np', '--not_plot', action='store_true')
+    parser.add_argument('-uen', '--use_exist_net', action='store_true')
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
@@ -82,7 +83,8 @@ if __name__ == '__main__':
         q=param['q'] if 'q' in param else 0.1,
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay,
-        study_folder=study_folder) # 出力の観測の遅れステップ
+        study_folder=study_folder, # 出力の観測の遅れステップ
+        use_exist_net=args.use_exist_net) # 既存のネットワークを使うかどうか
 
     # 学習
     print('Start train.')

@@ -1,4 +1,3 @@
-from typing import Any
 import numpy as np
 from copy import deepcopy
 import random
@@ -34,7 +33,7 @@ class RBF:
     """
     ネットワークパラメータはニューロンごとで管理し，計算時に行列を構築する
     """
-    def __init__(self, nu, ny, init_h, input_size):
+    def __init__(self, nu, ny, init_h, input_size, use_exist_net):
         self._nu = nu
         self._ny = ny
         self._h = init_h
@@ -47,7 +46,7 @@ class RBF:
         self._sigma = None
 
         self._hidden_unit = [] # 隠れニューロン保存用
-        if self._h : # 基本ここで作成しないけど一応書いておく
+        if self._h and not use_exist_net :
             for _ in range(self._h):
                 self._hidden_unit.append(Unit(
                     wk = np.array([random.uniform(-10, 10) for _ in range(self._ny)], dtype=np.float64),
