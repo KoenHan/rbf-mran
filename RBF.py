@@ -33,7 +33,8 @@ class RBF:
     """
     ネットワークパラメータはニューロンごとで管理し，計算時に行列を構築する
     """
-    def __init__(self, nu, ny, init_h, input_size, use_exist_net):
+    def __init__(self, nu, ny, init_h, input_size, use_exist_net=False,
+            init_w0=None, init_wk=None, init_myu=None, init_sigma=None):
         self._nu = nu
         self._ny = ny
         self._h = init_h
@@ -46,7 +47,17 @@ class RBF:
         self._sigma = None
 
         self._hidden_unit = [] # 隠れニューロン保存用
-        if self._h and not use_exist_net :
+        if use_exist_net :
+            self._w0 = init_w0
+            for hi in range(self._h):
+                self._hidden_unit.append(Unit(
+                    wk = init_wk[:, hi],
+                    myu = init_myu[:, hi],
+                    sigma = init_sigma[hi]
+                ))
+            self._gen_network_from_hidden_unit()
+            print("Use exist network.")
+        elif self._h :
             for _ in range(self._h):
                 self._hidden_unit.append(Unit(
                     wk = np.array([random.uniform(-10, 10) for _ in range(self._ny)], dtype=np.float64),

@@ -1,10 +1,10 @@
 data_len: 5000
-gen_new_data: false
-init_h: 100
+gen_new_data: true
+init_h: 0
 input_delay: 0
 n_change_u: -1
 n_change_x: -1
-not_plot: true
+not_plot: false
 output_delay: 0
 param_file: param.yaml
 plot_len: 500
@@ -14,5 +14,6 @@ study_name: mimo
 sys: mimo
 u_after: -1
 u_before: -1
+use_exist_net: true
 x_after: -1
 x_before: -1

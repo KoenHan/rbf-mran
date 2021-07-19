@@ -2,8 +2,6 @@ import numpy as np
 import time
 import os
 
-from numpy.lib import load
-
 from RBF import RBF
 from utils import save_ndarray, load_ndarray
 
@@ -22,19 +20,29 @@ class RBF_MRAN:
         self._myu_param_file = study_folder+'/model/myu.txt'
         self._sigma_param_file = study_folder+'/model/sigma.txt'
 
+        init_w0 = None
+        init_wk = None
+        init_myu = None
+        init_sigma = None
+        if use_exist_net :
+            init_w0 = load_ndarray(self._w0_param_file)
+            init_wk = load_ndarray(self._wk_param_file)
+            if len(init_wk.shape) == 1 :
+                init_wk = init_wk.reshape(1, -1)
+            init_myu = load_ndarray(self._myu_param_file)
+            if len(init_myu.shape) == 1 :
+                init_myu = init_myu.reshape(1, -1)
+            init_sigma = load_ndarray(self._sigma_param_file)
+            init_h = init_wk.shape[1]
         # RBFネットワーク初期化
         self._rbf = RBF(
             nu=nu, ny=ny, init_h=init_h,
             input_size = past_sys_input_num*nu + past_sys_output_num*ny,
-            use_exist_net = use_exist_net)
-        # 既存のネットワークを読み込むときは強制的に上書き
-        # RBFクラスにパス渡すのがめんどくさいので
-        if use_exist_net :
-            self._rbf._w0 = load_ndarray(self._w0_param_file)
-            self._rbf._wk = load_ndarray(self._wk_param_file)
-            self._rbf._myu = load_ndarray(self._myu_param_file)
-            self._rbf._sigma = load_ndarray(self._sigma_param_file)
-            self._rbf._h = self._rbf._wk.shape[1]
+            use_exist_net = use_exist_net,
+            init_w0=init_w0,
+            init_wk=init_wk,
+            init_myu=init_myu,
+            init_sigma=init_sigma)
 
         self._rbf_ny = ny
         self._rbf_nu = nu
