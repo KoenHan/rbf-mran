@@ -299,15 +299,17 @@ class RBF_MRAN:
         パラメータの保存
         パラメータを保存するだけなので例外的にprivateメンバ変数に直接アクセスしている
         """
+        def sp(fn, param) :
+            if os.path.isfile(fn) :
+                os.remove(fn)
+            with open(fn, 'w') as f :
+                save_ndarray(f, param)
+
         self._rbf._gen_network_from_hidden_unit()
-        with open(self._w0_param_file, 'w') as f :
-            save_ndarray(f, self._rbf._w0)
-        with open(self._wk_param_file, 'w') as f :
-            save_ndarray(f, self._rbf._wk)
-        with open(self._myu_param_file, 'w') as f :
-            save_ndarray(f, self._rbf._myu)
-        with open(self._sigma_param_file, 'w') as f:
-            save_ndarray(f, self._rbf._sigma)
+        sp(self._w0_param_file, self._rbf._w0)
+        sp(self._wk_param_file, self._rbf._wk)
+        sp(self._myu_param_file, self._rbf._myu)
+        sp(self._sigma_param_file, self._rbf._sigma)
 
     def calc_MAE(self):
         """

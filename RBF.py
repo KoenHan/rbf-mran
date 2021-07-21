@@ -60,9 +60,9 @@ class RBF:
         elif self._h :
             for _ in range(self._h):
                 self._hidden_unit.append(Unit(
-                    wk = np.array([random.uniform(-10, 10) for _ in range(self._ny)], dtype=np.float64),
-                    myu = np.array([random.uniform(-10, 10) for _ in range(self._input_size)], dtype=np.float64),
-                    sigma = random.uniform(0, 100)
+                    wk = np.array([random.uniform(-1, 1) for _ in range(self._ny)], dtype=np.float64),
+                    myu = np.array([random.uniform(-1, 1) for _ in range(self._input_size)], dtype=np.float64),
+                    sigma = random.uniform(0, 1)
                 ))
             self._gen_network_from_hidden_unit()
 

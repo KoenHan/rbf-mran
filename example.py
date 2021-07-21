@@ -94,17 +94,17 @@ if __name__ == '__main__':
     print('mean rbf_mran.update_rbf() duration[s]: ', rbf_mran.calc_mean_update_time())
     print('Total MAE: ', rbf_mran.calc_MAE())
 
-    param = rbf_mran.get_rbf()
-    AFTER_TRAIN = args.study_name + '_after_train.txt'
-    if os.path.isfile(AFTER_TRAIN) :
-        os.remove(AFTER_TRAIN)
-    with open(AFTER_TRAIN, 'w') as f :
-        pass
-    with open(AFTER_TRAIN, 'a') as f :
-        save_ndarray(f, param['w0'])
-        save_ndarray(f, param['wk'])
-        save_ndarray(f, param['myu'])
-        save_ndarray(f, param['sigma'])
+    # param = rbf_mran.get_rbf()
+    # AFTER_TRAIN = args.study_name + '_after_train.txt'
+    # if os.path.isfile(AFTER_TRAIN) :
+    #     os.remove(AFTER_TRAIN)
+    # with open(AFTER_TRAIN, 'w') as f :
+    #     pass
+    # with open(AFTER_TRAIN, 'a') as f :
+    #     save_ndarray(f, param['w0'])
+    #     save_ndarray(f, param['wk'])
+    #     save_ndarray(f, param['myu'])
+    #     save_ndarray(f, param['sigma'])
 
 
     with open(test_file, mode='r') as f:
@@ -116,17 +116,17 @@ if __name__ == '__main__':
         rbf_mran.test(data)
     print('Test finished.')
 
-    param = rbf_mran.get_rbf()
-    AFTER_TEST = args.study_name + '_after_test.txt'
-    if os.path.isfile(AFTER_TEST) :
-        os.remove(AFTER_TEST)
-    with open(AFTER_TEST, 'w') as f :
-        pass
-    with open(AFTER_TEST, 'a') as f :
-        save_ndarray(f, param['w0'])
-        save_ndarray(f, param['wk'])
-        save_ndarray(f, param['myu'])
-        save_ndarray(f, param['sigma'])
+    # param = rbf_mran.get_rbf()
+    # AFTER_TEST = args.study_name + '_after_test.txt'
+    # if os.path.isfile(AFTER_TEST) :
+    #     os.remove(AFTER_TEST)
+    # with open(AFTER_TEST, 'w') as f :
+    #     pass
+    # with open(AFTER_TEST, 'a') as f :
+    #     save_ndarray(f, param['w0'])
+    #     save_ndarray(f, param['wk'])
+    #     save_ndarray(f, param['myu'])
+    #     save_ndarray(f, param['sigma'])
 
     # 色々保存とプロット
     rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
