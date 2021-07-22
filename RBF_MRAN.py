@@ -64,6 +64,7 @@ class RBF_MRAN:
         self._gamma = float(gamma)
         self._Nw = Nw
         self._past_ei_norm_pow = []
+        self._pre_yi = np.zeros(self._rbf_ny, dtype=np.float64)
 
         # Step 2で使われるパラメータ
         self._kappa = kappa
@@ -115,7 +116,7 @@ class RBF_MRAN:
         self._gamma_n *= self._gamma
         return max(self._E3_max*self._gamma_n, self._E3_min)
 
-    def _calc_error_criteria(self, input, f, yi):
+    def _calc_error_criteria(self, input, f, yi_np):
         """
         Step 1の実装
         Returns:
@@ -129,11 +130,14 @@ class RBF_MRAN:
             myu_ir(ndarray(np.float64)):←いらないので消した
                 式3.6のmyu_ir
         """
-        ei = yi - f
+        ei = yi_np - f
         ei_norm = np.linalg.norm(ei, ord=2)
+        # 学習の改善のために以下のエラーを追加する
+        ei_norm += np.linalg.norm(self._pre_yi - yi_np, ord=2)/(np.linalg.norm(self._pre_yi - f, ord=2) + 1)
         di = self._rbf.get_closest_unit_myu_and_dist(input)
 
-        self._past_ei_norm_pow.append(ei@ei)
+        # self._past_ei_norm_pow.append(ei@ei)
+        self._past_ei_norm_pow.append(ei_norm*ei_norm)
         if len(self._past_ei_norm_pow) > self._Nw :
             del self._past_ei_norm_pow[0]
 
@@ -145,14 +149,20 @@ class RBF_MRAN:
         elif di <= self._calc_E3(): # p.55の実験に合わせた
             case = 3
 
+        '''
+        memo: 返すeiについて
+        エラーに第2項を追加したが，
+        追加した項をどうeiに反映させればいいのかわからないので現状維持
+        もうちょっと考えたほうが良さそう
+        '''
         return case, ei, ei_norm, di
 
-    def update_rbf(self, input, yi):
+    def update_rbf(self, input, yi_np):
         f = self._rbf.calc_f(input)
         o = self._rbf.calc_o()
 
         # Step 1
-        satisfied, ei, ei_norm, di = self._calc_error_criteria(input, f, yi)
+        satisfied, ei, ei_norm, di = self._calc_error_criteria(input, f, yi_np)
         # print("satisfied case ", satisfied)
         z = self._rbf.get_param_num()
         if satisfied == 0 :
@@ -221,13 +231,14 @@ class RBF_MRAN:
 
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
+        yi_np = np.array(yi, dtype=np.float64)
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = self._gen_input()
             start = time.time()
-            now_y = self.update_rbf(input, yi)
+            now_y = self.update_rbf(input, yi_np)
             finish = time.time()
             self._update_rbf_time_sum += finish - start
             self._train_pre_res.append(now_y)
@@ -239,6 +250,8 @@ class RBF_MRAN:
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
+
+        self._pre_yi = yi_np
 
     def test(self, data):
         yi = data[:self._rbf_ny]

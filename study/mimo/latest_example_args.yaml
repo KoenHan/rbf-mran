@@ -14,6 +14,6 @@ study_name: mimo
 sys: mimo
 u_after: -1
 u_before: -1
-use_exist_net: true
+use_exist_net: false
 x_after: -1
 x_before: -1
