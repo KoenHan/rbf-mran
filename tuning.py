@@ -22,7 +22,7 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 5)
+        pson = trial.suggest_int('past_sys_output_num', 3, 3)
         E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
         E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
@@ -32,7 +32,7 @@ class Objective(object):
         # kappa = trial.suggest_int('kappa', 1, 1)
         # p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
         p0 = trial.suggest_int('p0', 1, 1)
-        q = trial.suggest_discrete_uniform('q', 0.01, 1, 0.01)
+        q = trial.suggest_discrete_uniform('q', 0.01, 0.1, 0.01)
         Nw = trial.suggest_int('Nw', 10, 80)
         Sw = trial.suggest_int('Sw', 10, 80)
 
