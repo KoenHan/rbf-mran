@@ -220,9 +220,6 @@ class RBF_MRAN:
         # 学習全体のMAEの計算のために合計を取る
         self._total_MAE += ei_norm
 
-        # 履歴の逐次保存
-        self.save_res()
-
         return f
 
     def _gen_input(self):
@@ -251,6 +248,7 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
 
+        self.save_res() # 履歴の逐次保存
         self._pre_yi = yi_np
 
     def test(self, data):
@@ -269,6 +267,21 @@ class RBF_MRAN:
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
+
+        self.save_res() # 履歴の逐次保存
+
+    def save_res(self, is_last_save=False):
+        # len(*) == 0ならis_last_saveを無視したいからこうしてるけど書き直せるけど一旦放置
+        if len(self._h_hist) :
+            self._save_hist(is_last_save)
+        if len(self._test_pre_res) :
+            res = self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
+            if res : self._test_pre_res = []
+        if len(self._train_pre_res) :
+            res = self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
+            if res : self._train_pre_res = []
+        if is_last_save :
+            self._save_param()
 
     def _save_hist(self, is_last_save=False):
         '''
@@ -294,18 +307,6 @@ class RBF_MRAN:
             return True
         else :
             return False
-
-    def save_res(self, is_last_save=False):
-        if len(self._h_hist) :
-            self._save_hist(is_last_save)
-        if len(self._test_pre_res) :
-            res = self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
-            if res : self._test_pre_res = []
-        if len(self._train_pre_res) :
-            res = self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
-            if res : self._train_pre_res = []
-        if is_last_save :
-            self._save_param()
 
     def _save_param(self):
         """
