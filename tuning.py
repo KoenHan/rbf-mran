@@ -24,7 +24,7 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 1, 1)
+        pson = trial.suggest_int('past_sys_output_num', 3, 3)
         E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
         E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)

@@ -133,11 +133,11 @@ class RBF_MRAN:
         ei = yi_np - f
         ei_norm = np.linalg.norm(ei, ord=2)
         # 学習の改善のために以下のエラーを追加する
-        ei_norm += np.linalg.norm(self._pre_yi - yi_np, ord=2)/(np.linalg.norm(self._pre_yi - f, ord=2) + 1)
+        # ei_norm += np.linalg.norm(self._pre_yi - yi_np, ord=2)/(np.linalg.norm(self._pre_yi - f, ord=2) + 1)
         di = self._rbf.get_closest_unit_myu_and_dist(input)
 
-        # self._past_ei_norm_pow.append(ei@ei)
-        self._past_ei_norm_pow.append(ei_norm*ei_norm)
+        self._past_ei_norm_pow.append(ei@ei)
+        # self._past_ei_norm_pow.append(ei_norm**2)
         if len(self._past_ei_norm_pow) > self._Nw :
             del self._past_ei_norm_pow[0]
 
