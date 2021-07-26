@@ -14,6 +14,8 @@ class Objective(object):
         self.test_file = study_folder+'/data/test.txt'
         self.train_ps_file = study_folder+'/data/train_pre_res.txt'
         self.test_ps_file = study_folder+'/data/test_pre_res.txt'
+        self.train_best_ps_file = study_folder+'/data/train_pre_res_best.txt'
+        self.test_best_ps_file = study_folder+'/data/test_pre_res_best.txt'
         self.err_file = study_folder+'/history/error.txt'
         self.h_hist_file = study_folder+'/history/h.txt'
         self.param_file = study_folder+'/model/param_by_optuna.yaml'
@@ -22,7 +24,7 @@ class Objective(object):
 
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
-        pson = trial.suggest_int('past_sys_output_num', 3, 3)
+        pson = trial.suggest_int('past_sys_output_num', 1, 1)
         E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
         E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
         E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
@@ -90,6 +92,14 @@ class Objective(object):
             print('Finish test')
 
             rbf_mran.save_res(is_last_save=True)
+
+            # 名前をそのままにすると消えるから，現在の結果を別名で保存
+            if os.path.isfile(self.train_best_ps_file) :
+                os.remove(self.train_best_ps_file)
+            if os.path.isfile(self.test_best_ps_file) :
+                os.remove(self.test_best_ps_file)
+            os.rename(self.train_ps_file, self.train_best_ps_file)
+            os.rename(self.test_ps_file, self.test_best_ps_file)
 
         return MAE
 
