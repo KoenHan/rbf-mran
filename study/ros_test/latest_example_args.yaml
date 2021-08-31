@@ -9,7 +9,7 @@ output_delay: 0
 param_file: param.yaml
 plot_len: 1000
 plot_mode: 1
-plot_start: 97000
+plot_start: 65000
 study_name: ros_test
 sys: mimo
 u_after: -1
