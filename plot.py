@@ -30,7 +30,8 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
 
     # ax_name = ['x', 'y', 'z', 'w', 'rollrate', 'pitchrate', 'yawrate']
-    ax_name = ['rollrate', 'pitchrate', 'yawrate']
+    # ax_name = ['rollrate', 'pitchrate', 'yawrate']
+    ax_name = ['q0rate', 'q1rate', 'q2rate', 'q3rate']
 
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
