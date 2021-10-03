@@ -82,10 +82,7 @@ def quat(start) :
         y1_q1.append(data[1])
         y1_q2.append(data[2])
         y1_q3.append(data[3])
-    # plot_res(x, y1_q0, "真値 q0")
-    plot_res(x, y1_q1, "真値 q1")
-    # plot_res(x, y1_q2, "真値 q2")
-    # plot_res(x, y1_q3, "真値 q3")
+
 
     y2_q0 = [y1_q0[0]]
     y2_q1 = [y1_q1[0]]
@@ -94,15 +91,20 @@ def quat(start) :
     dt = 1/50 # 何故か掛けない方がいい
     # todo: 角速度をそのまま積分しても角度にならないので修正する
     # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
-    for i, data in enumerate(rbf_mran._test_pre_res) :
-        y2_q0.append(y2_q0[i] + data[0]*dt)
-        y2_q1.append(y2_q1[i] + data[1]*dt)
-        y2_q2.append(y2_q2[i] + data[2]*dt)
-        y2_q3.append(y2_q3[i] + data[3]*dt)
+    for data in rbf_mran._test_pre_res :
+        y2_q0.append(y2_q0[-1] + data[0]*dt)
+        y2_q1.append(y2_q1[-1] + data[1]*dt)
+        y2_q2.append(y2_q2[-1] + data[2]*dt)
+        y2_q3.append(y2_q3[-1] + data[3]*dt)
+
+    # plot_res(x, y1_q0, "真値 q0")
     # plot_res(x, y2_q0, "推測 q0")
-    plot_res(x, y2_q1, "推測 q1")
+    # plot_res(x, y1_q1, "真値 q1")
+    # plot_res(x, y2_q1, "推測 q1")
+    # plot_res(x, y1_q2, "真値 q2")
     # plot_res(x, y2_q2, "推測 q2")
-    # plot_res(x, y2_q3, "推測 q3")
+    plot_res(x, y1_q3, "真値 q3")
+    plot_res(x, y2_q3, "推測 q3")
 
     # print(rbf_mran._test_pre_res)
 
@@ -152,19 +154,19 @@ def euler(start) :
     dt = 1/50 # 何故か掛けない方がいい
     # todo: 角速度をそのまま積分しても角度にならないので修正する
     # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
-    for i, data in enumerate(rbf_mran._test_pre_res) :
+    for data in rbf_mran._test_pre_res :
         gx = data[0]*dt/2.0
         gy = data[1]*dt/2.0
         gz = data[2]*dt/2.0
         # # 移動体座標系
-        dq0 = -y2_q1[i]*gx - y2_q2[i]*gy - y2_q3[i]*gz
-        dq1 =  y2_q0[i]*gx + y2_q2[i]*gz - y2_q3[i]*gy
-        dq2 =  y2_q0[i]*gy - y2_q1[i]*gz + y2_q3[i]*gx
-        dq3 =  y2_q0[i]*gz + y2_q1[i]*gy - y2_q2[i]*gx
-        y2_q0.append(y2_q0[i] + dq0)
-        y2_q1.append(y2_q1[i] + dq1)
-        y2_q2.append(y2_q2[i] + dq2)
-        y2_q3.append(y2_q3[i] + dq3)
+        dq0 = -y2_q1[-1]*gx - y2_q2[-1]*gy - y2_q3[-1]*gz
+        dq1 =  y2_q0[-1]*gx + y2_q2[-1]*gz - y2_q3[-1]*gy
+        dq2 =  y2_q0[-1]*gy - y2_q1[-1]*gz + y2_q3[-1]*gx
+        dq3 =  y2_q0[-1]*gz + y2_q1[-1]*gy - y2_q2[-1]*gx
+        y2_q0.append(y2_q0[-1] + dq0)
+        y2_q1.append(y2_q1[-1] + dq1)
+        y2_q2.append(y2_q2[-1] + dq2)
+        y2_q3.append(y2_q3[-1] + dq3)
     # plot_res(x, y2_q0, "推測 q0")
     plot_res(x, y2_q1, "推測 q1")
     # plot_res(x, y2_q2, "推測 q2")
@@ -180,7 +182,7 @@ def euler(start) :
 
 def position(start) :
     study_folder = "./study/ros_test_pos"
-    rbf_mran, hist_len = plt.get(study_folder)
+    rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'
     with open(qrs_file, mode='r') as f:
@@ -212,10 +214,10 @@ def position(start) :
     y2_y = [y1_y[0]]
     y2_z = [y1_z[0]]
     dt = 1/50
-    for i, data in enumerate(rbf_mran._test_pre_res) :
-        y2_x.append(y2_x[i] + data[0]*dt)
-        y2_y.append(y2_y[i] + data[1]*dt)
-        y2_z.append(y2_z[i] + data[2]*dt)
+    for data in rbf_mran._test_pre_res :
+        y2_x.append(y2_x[-1] + data[0]*dt)
+        y2_y.append(y2_y[-1] + data[1]*dt)
+        y2_z.append(y2_z[-1] + data[2]*dt)
     plot_res(x, y2_x, "推測 x")
     plot_res(x, y2_y, "推測 y")
     plot_res(x, y2_z, "推測 z")
