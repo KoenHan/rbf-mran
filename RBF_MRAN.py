@@ -9,7 +9,7 @@ class RBF_MRAN:
     def __init__(self, nu, ny, past_sys_input_num, past_sys_output_num,
             init_h, E1, E2, E3, E3_max, E3_min, gamma, Nw, Sw, kappa=1.0,
             p0=1, q=0.1, input_delay=0, output_delay=0, study_folder=None,
-            use_exist_net=False) :
+            use_exist_net=False, readonly=False) :
         # 各種データ保存先
         self._err_file = study_folder+'/history/error.txt'
         self._h_hist_file = study_folder+'/history/h.txt'
@@ -100,13 +100,16 @@ class RBF_MRAN:
         # self._update_rbf_time = [] # 時間計測
         self._update_rbf_time_sum = 0.0 # 時間計測
 
-        # 既存のデータファイルの削除
-        for i, file in enumerate([self._err_file, self._h_hist_file, self._test_ps_file, self._train_ps_file]) :
-            if os.path.isfile(file) :
-                os.remove(file)
-            if i == 0 :
-                with open(file, 'w') as f:
-                    f.write(str(self._Nw)+'\n')
+        self.readonly = readonly # 消してほしくない時に
+
+        if not self.readonly :
+            # 既存のデータファイルの削除
+            for i, file in enumerate([self._err_file, self._h_hist_file, self._test_ps_file, self._train_ps_file]) :
+                if os.path.isfile(file) :
+                    os.remove(file)
+                if i == 0 :
+                    with open(file, 'w') as f:
+                        f.write(str(self._Nw)+'\n')
 
     def _calc_E3(self):
         # return self._E3
@@ -249,6 +252,7 @@ class RBF_MRAN:
         self._past_sys_output.extend(yi)
 
         self.save_res() # 履歴の逐次保存
+
         self._pre_yi = yi_np
 
     def test(self, data):
@@ -275,12 +279,10 @@ class RBF_MRAN:
         if len(self._h_hist) :
             self._save_hist(is_last_save)
         if len(self._test_pre_res) :
-            res = self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save)
-            if res : self._test_pre_res = []
+            self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save, 'test')
         if len(self._train_pre_res) :
-            res = self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save)
-            if res : self._train_pre_res = []
-        if is_last_save :
+            self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save, 'train')
+        if is_last_save and not self.readonly:
             self._save_param()
 
     def _save_hist(self, is_last_save=False):
@@ -288,25 +290,30 @@ class RBF_MRAN:
         誤差履歴，隠れニューロン数履歴の逐次保存
         '''
         if len(self._Id_hist) >= 500 or is_last_save :
-            with open(self._err_file, mode='a') as f:
-                f.write('\n'.join(map(str, self._Id_hist))+'\n')
+            if not self.readonly :
+                with open(self._err_file, mode='a') as f:
+                    f.write('\n'.join(map(str, self._Id_hist))+'\n')
             self._Id_hist = []
         if len(self._h_hist) >= 500 or is_last_save :
-            with open(self._h_hist_file, mode='a') as f:
-                f.write('\n'.join(map(str, self._h_hist))+'\n')
+            if not self.readonly :
+                with open(self._h_hist_file, mode='a') as f:
+                    f.write('\n'.join(map(str, self._h_hist))+'\n')
             self._h_hist = []
 
-    def _save_pre_res(self, pre_res, ps_file, is_last_save=False):
+    def _save_pre_res(self, pre_res, ps_file, is_last_save=False, type='test'):
         """
         予測結果の逐次保存
         """
         if len(pre_res) >= 500 or is_last_save :
-            with open(ps_file, mode='a') as f:
-                for res in pre_res:
-                    f.write('\t'.join(map(str, res.tolist()))+'\n')
-            return True
-        else :
-            return False
+            if not self.readonly :
+                with open(ps_file, mode='a') as f:
+                    for res in pre_res:
+                        f.write('\t'.join(map(str, res.tolist()))+'\n')
+            if type == 'test' :
+                self._test_pre_res = []
+            elif type == 'train' :
+                self._train_pre_res = []
+
 
     def _save_param(self):
         """
