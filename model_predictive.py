@@ -88,7 +88,7 @@ def quat(start) :
     y2_q1 = [y1_q1[0]]
     y2_q2 = [y1_q2[0]]
     y2_q3 = [y1_q3[0]]
-    dt = 1/50 # 何故か掛けない方がいい
+    dt = 1/50
     # todo: 角速度をそのまま積分しても角度にならないので修正する
     # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
     for data in rbf_mran._test_pre_res :
@@ -99,12 +99,12 @@ def quat(start) :
 
     # plot_res(x, y1_q0, "真値 q0")
     # plot_res(x, y2_q0, "推測 q0")
-    # plot_res(x, y1_q1, "真値 q1")
-    # plot_res(x, y2_q1, "推測 q1")
+    plot_res(x, y1_q1, "真値 q1")
+    plot_res(x, y2_q1, "推測 q1")
     # plot_res(x, y1_q2, "真値 q2")
     # plot_res(x, y2_q2, "推測 q2")
-    plot_res(x, y1_q3, "真値 q3")
-    plot_res(x, y2_q3, "推測 q3")
+    # plot_res(x, y1_q3, "真値 q3")
+    # plot_res(x, y2_q3, "推測 q3")
 
     # print(rbf_mran._test_pre_res)
 
@@ -115,7 +115,7 @@ def quat(start) :
 
 
 def euler(start) :
-    study_folder = "./study/ros_test_angle_euler"
+    study_folder = "./study/ros_test_angle_euler2"
     rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'
@@ -151,8 +151,8 @@ def euler(start) :
     y2_q1 = [y1_q1[0]]
     y2_q2 = [y1_q2[0]]
     y2_q3 = [y1_q3[0]]
-    dt = 1/50 # 何故か掛けない方がいい
-    # todo: 角速度をそのまま積分しても角度にならないので修正する
+    dt = 1/50
+    # 角速度→クオータニオン形式変換参考
     # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
     for data in rbf_mran._test_pre_res :
         gx = data[0]*dt/2.0
@@ -181,7 +181,7 @@ def euler(start) :
 
 
 def position(start) :
-    study_folder = "./study/ros_test_pos"
+    study_folder = "./study/ros_test_pos2"
     rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'

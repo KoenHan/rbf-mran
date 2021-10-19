@@ -234,6 +234,10 @@ class RBF_MRAN:
         yi_np = np.array(yi, dtype=np.float64)
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
+
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = self._gen_input()
@@ -243,9 +247,14 @@ class RBF_MRAN:
             self._update_rbf_time_sum += finish - start
             self._train_pre_res.append(now_y)
 
-        if len(self._past_sys_input) == self._past_sys_input_limit:
-            del self._past_sys_input[:self._rbf_nu]
-        self._past_sys_input.extend(ui)
+        '''
+        以下の3行を236行目あたりに移動してもう一回予測を行う
+        式3.3のuとyが左下のような関係ならこのままでいいが，今回は右下でなのでこのままでは良くない
+              y   u           y   u
+        t   : ○→○          ○←○
+                ↙            (tとt+1の間では制御的には無関係）
+        t+1 : ○→○          ○←○
+        '''
 
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
@@ -259,14 +268,23 @@ class RBF_MRAN:
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]
 
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
+
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = self._gen_input()
             self._test_pre_res.append(self._rbf.calc_f(input))
 
-        if len(self._past_sys_input) == self._past_sys_input_limit:
-            del self._past_sys_input[:self._rbf_nu]
-        self._past_sys_input.extend(ui)
+        '''
+        以下の3行を261行目あたりに移動してもう一回予測を行う
+        式3.3のuとyが左下のような関係ならこのままでいいが，今回は右下でなのでこのままでは良くない
+              y   u           y   u
+        t   : ○→○          ○←○
+                ↙            (tとt+1の間では制御的には無関係）
+        t+1 : ○→○          ○←○
+        '''
 
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
@@ -346,17 +364,31 @@ class RBF_MRAN:
         # return sum(self._update_rbf_time)/len(self._update_rbf_time)
         return self._update_rbf_time_sum/self._cnt_train_num
 
-    def get_rbf(self):
+    def get_rbf_param(self):
         """
-        rbfのネットワークのパラメータを返す
+        rbfネットワークのパラメータを返す
         パラメータを外部に渡すだけなので例外的にprivateメンバ変数に直接アクセスしている
         """
         self._rbf._gen_network_from_hidden_unit()
         dict = {
+            'h' : self._rbf._h,
             'w0' : self._rbf._w0,
             'wk' : self._rbf._wk,
             'myu' : self._rbf._myu,
             'sigma' : self._rbf._sigma}
+
+        return dict
+
+    def get_rbf_config(self):
+        """
+        rbfネットワークの設定を返す
+        パラメータを外部に渡すだけなので例外的にprivateメンバ変数に直接アクセスしている
+        """
+        dict = {
+            'ny' : self._rbf._ny,
+            'nu' : self._rbf._nu,
+            'psin' : self._past_sys_input_num,
+            'pson' : self._past_sys_output_num}
 
         return dict
 
