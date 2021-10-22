@@ -231,6 +231,7 @@ def euler(start) :
 def position(start) :
     study_folder = "./study/ros_test_pos2"
     rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
+    rbf_mran2 = deepcopy(rbf_mran)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'
     with open(qrs_file, mode='r') as f:
@@ -241,12 +242,15 @@ def position(start) :
     horizen = 50
     y = qrs_datas[idx-hist_len:idx+horizen]
     v = y[0][-7:-4]
+    v2 = y[0][-7:-4]
     for data in y[:-1] : # 速度を学習したので長さはhorizen-1でいい
         rbf_mran.test(v + data[-4:])
+        rbf_mran2.test(v2 + data[-4:])
         if len(rbf_mran._test_pre_res) == 0 :
             v = data[-7:-4]
         else :
             v = rbf_mran._test_pre_res[-1].tolist() # 実際の制御ではこうなるから
+        v2 = data[-7:-4]
 
     title = "モデル予測結果(位置)"
     fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
@@ -269,8 +273,8 @@ def position(start) :
     # plot_res(x, y1_y, "真値 y")
     # plot_res(x, y1_z, "真値 z")
     plot_res(x, y1_xp, "真値 xp")
-    plot_res(x, y1_yp, "真値 yp")
-    plot_res(x, y1_zp, "真値 zp")
+    # plot_res(x, y1_yp, "真値 yp")
+    # plot_res(x, y1_zp, "真値 zp")
 
     y2_x = [y1_x[0]]
     y2_y = [y1_y[0]]
@@ -278,6 +282,9 @@ def position(start) :
     y2_xp = [y1_xp[0]]
     y2_yp = [y1_yp[0]]
     y2_zp = [y1_zp[0]]
+    y3_xp = [y1_xp[0]]
+    y3_yp = [y1_yp[0]]
+    y3_zp = [y1_zp[0]]
     dt = 1/50
     for data in rbf_mran._test_pre_res :
         y2_x.append(y2_x[-1] + data[0]*dt)
@@ -286,12 +293,19 @@ def position(start) :
         y2_xp.append(data[0])
         y2_yp.append(data[1])
         y2_zp.append(data[2])
+    for data in rbf_mran2._test_pre_res :
+        y3_xp.append(data[0])
+        y3_yp.append(data[1])
+        y3_zp.append(data[2])
     # plot_res(x, y2_x, "推測 x")
     # plot_res(x, y2_y, "推測 y")
     # plot_res(x, y2_z, "推測 z")
-    plot_res(x, y2_xp, "推測 xp")
-    plot_res(x, y2_yp, "推測 yp")
-    plot_res(x, y2_zp, "推測 zp")
+    plot_res(x, y2_xp, "推測* xp")
+    # plot_res(x, y2_yp, "推測 yp")
+    # plot_res(x, y2_zp, "推測 zp")
+    plot_res(x, y3_xp, "推測 xp")
+    # plot_res(x, y2_yp, "推測 yp")
+    # plot_res(x, y2_zp, "推測 zp")
 
     # print(rbf_mran._test_pre_res)
 
