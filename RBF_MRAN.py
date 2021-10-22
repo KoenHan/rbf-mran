@@ -275,8 +275,10 @@ class RBF_MRAN:
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
             input = self._gen_input()
+            print('input ', input)
             self._test_pre_res.append(self._rbf.calc_f(input))
-
+            print('tpr', self._test_pre_res[-1].tolist())
+            print(len(self._test_pre_res))
         '''
         以下の3行を261行目あたりに移動してもう一回予測を行う
         式3.3のuとyが左下のような関係ならこのままでいいが，今回は右下でなのでこのままでは良くない
@@ -289,6 +291,8 @@ class RBF_MRAN:
         if len(self._past_sys_output) == self._past_sys_output_limit:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
+        print('psi ', self._past_sys_input)
+        print('pso ', self._past_sys_output)
 
         self.save_res() # 履歴の逐次保存
 

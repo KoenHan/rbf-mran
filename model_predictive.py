@@ -3,6 +3,7 @@ import os
 import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 from RBF_MRAN import RBF_MRAN
 from generate_data import *
@@ -115,32 +116,44 @@ def quat(start) :
 
 
 def euler(start) :
-    study_folder = "./study/ros_test_angle_euler2"
+    study_folder = "./study/ros_test_angle_euler3"
     rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
+    rbf_mran2 = deepcopy(rbf_mran)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'
     with open(qrs_file, mode='r') as f:
         l = f.readlines()
     qrs_datas = [list(map(float, s.strip().split())) for s in l]
 
+
     idx = int(qrs_datas[0][0]) + start
     horizen = 50
-    y = qrs_datas[idx-hist_len:idx+horizen]
-    w_euler = y[0][4:7]
-    for data in y[:-1] : # 加速度を学習したので長さはhorizen-1でいい
-        rbf_mran.test(w_euler + data[-4:])
+    y = qrs_datas[idx:idx+horizen]
+    w_euler = []
+    w_euler2 = []
+    x = [i for i in range(start, start+horizen)]
+    print('x len ', len(x))
+    for i, data in enumerate(y) :
         if len(rbf_mran._test_pre_res) == 0 :
-            w_euler = data[4:7]
+            w_euler = deepcopy(data[4:7])
         else :
-            w_euler = rbf_mran._test_pre_res[-1].tolist() # 実際の制御ではこうなるから
+            w_euler = deepcopy(rbf_mran._test_pre_res[-1]).tolist() # 実際の制御ではこうなるから
+        w_euler2 = deepcopy(data[4:7])
+        print(f'x {x[i]}')
+        print('wの推測値を使う方：')
+        print('w_euler ', w_euler)
+        rbf_mran.test(deepcopy(w_euler) + deepcopy(data[-4:]))
+        print('wの真値を使う方：')
+        print('w_euler2 ', w_euler2)
+        rbf_mran2.test(deepcopy(w_euler2) + deepcopy(data[-4:]))
+        print()
         # print(type(w_euler))
         # print(type(data[-4:]))
-            # print(rbf_mran._test_pre_res[-1].tolist())
+        # print(rbf_mran._test_pre_res[-1].tolist())
 
     title = "モデル予測結果(姿勢)"
     fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
 
-    x = [i for i in range(start, start+horizen)]
     y1_q0 = []
     y1_q1 = []
     y1_q2 = []
@@ -148,7 +161,7 @@ def euler(start) :
     y1_w0 = []
     y1_w1 = []
     y1_w2 = []
-    for data in y[hist_len:hist_len+horizen] :
+    for data in y :
         y1_q0.append(data[0])
         y1_q1.append(data[1])
         y1_q2.append(data[2])
@@ -156,6 +169,7 @@ def euler(start) :
         y1_w0.append(data[4])
         y1_w1.append(data[5])
         y1_w2.append(data[6])
+    print('y1_w2 len ', len(y1_w2))
     # plot_res(x, y1_q0, "真値 q0")
     # plot_res(x, y1_q1, "真値 q1")
     # plot_res(x, y1_q2, "真値 q2")
@@ -171,6 +185,9 @@ def euler(start) :
     y2_w0 = [y1_w0[0]]
     y2_w1 = [y1_w1[0]]
     y2_w2 = [y1_w2[0]]
+    y3_w0 = [y1_w0[0]]
+    y3_w1 = [y1_w1[0]]
+    y3_w2 = [y1_w2[0]]
     dt = 1/50
     # 角速度→クオータニオン形式変換参考
     # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
@@ -190,11 +207,16 @@ def euler(start) :
         y2_w0.append(data[0])
         y2_w1.append(data[1])
         y2_w2.append(data[2])
+    for data in rbf_mran2._test_pre_res :
+        y3_w0.append(data[0])
+        y3_w1.append(data[1])
+        y3_w2.append(data[2])
     # plot_res(x, y2_q0, "推測 q0")
     # plot_res(x, y2_q1, "推測 q1")
     # plot_res(x, y2_q2, "推測 q2")
     # plot_res(x, y2_q3, "推測 q3")
-    plot_res(x, y2_w0, "推測 w0")
+    plot_res(x, y2_w0, "推測* w0")
+    plot_res(x, y3_w0, "推測 w0")
     # plot_res(x, y2_w1, "推測 w1")
     # plot_res(x, y2_w2, "推測 w2")
 
