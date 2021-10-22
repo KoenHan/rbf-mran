@@ -132,19 +132,19 @@ def euler(start) :
     w_euler = []
     w_euler2 = []
     x = [i for i in range(start, start+horizen)]
-    print('x len ', len(x))
+    # print('x len ', len(x))
     for i, data in enumerate(y) :
         if len(rbf_mran._test_pre_res) == 0 :
             w_euler = deepcopy(data[4:7])
         else :
             w_euler = deepcopy(rbf_mran._test_pre_res[-1]).tolist() # 実際の制御ではこうなるから
         w_euler2 = deepcopy(data[4:7])
-        print(f'x {x[i]}')
-        print('wの推測値を使う方：')
-        print('w_euler ', w_euler)
+        # print(f'x {x[i]}')
+        # print('wの推測値を使う方：')
+        # print('w_euler ', w_euler)
         rbf_mran.test(deepcopy(w_euler) + deepcopy(data[-4:]))
-        print('wの真値を使う方：')
-        print('w_euler2 ', w_euler2)
+        # print('wの真値を使う方：')
+        # print('w_euler2 ', w_euler2)
         rbf_mran2.test(deepcopy(w_euler2) + deepcopy(data[-4:]))
         print()
         # print(type(w_euler))
@@ -321,7 +321,7 @@ if __name__=="__main__" :
     args = parser.parse_args()
 
     # starts = [55000, 60000, 65000]
-    starts = [i for i in range(1000, 65001, 50)]
+    starts = [i for i in range(50000, 65001, 50)]
     if args.type == "pos" :
         for start in starts :
             position(start)
