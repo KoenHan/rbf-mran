@@ -14,10 +14,10 @@ LINEWIDTH = 0.8
 WINWIDTH = 15
 WINHEIGHT = 15
 
-def plot_res(x, y, label):
+def plot_res(x, y, label, lw=LINEWIDTH):
     # plt.xticks([i for i in range(0, len_data + 1, 300)])
     # plt.yticks([i for i in range(0, max(data)+1, 1)])
-    plt.plot(x, y, label=label, linewidth=LINEWIDTH)
+    plt.plot(x, y, label=label, linewidth=lw)
     plt.grid()
     plt.legend()
     # plt.title(title, y=-0.25)
@@ -315,13 +315,64 @@ def position(start) :
 
     plt.show()
 
+
+def other(start) :
+    study_folder = "./study/siso_linear"
+    rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
+    rbf_mran2 = deepcopy(rbf_mran)
+
+    qrs_file = study_folder+'/data/train.txt'
+    with open(qrs_file, mode='r') as f:
+        l = f.readlines()
+    qrs_datas = [list(map(float, s.strip().split())) for s in l]
+
+    idx = int(qrs_datas[0][0]) + start
+    horizen = 50
+    y = qrs_datas[idx:idx+horizen]
+    w_euler = []
+    w_euler2 = []
+    x = [i for i in range(start, start+horizen)]
+    for i, data in enumerate(y) :
+        if len(rbf_mran._test_pre_res) == 0 :
+            w_euler = deepcopy(data[:1])
+        else :
+            w_euler = deepcopy(rbf_mran._test_pre_res[-1]).tolist() # 実際の制御ではこうなるから
+        w_euler2 = deepcopy(data[:1])
+        rbf_mran.test(deepcopy(w_euler) + deepcopy(data[-1:]))
+        rbf_mran2.test(deepcopy(w_euler2) + deepcopy(data[-1:]))
+
+    title = "モデル予測結果"
+    fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
+
+    y1 = []
+    for data in y :
+        y1.append(data[0])
+    plot_res(x, y1, "真値 w0", LINEWIDTH*10)
+
+    y2 = [y1[0]]
+    y3 = [y1[0]]
+    dt = 1/50
+    # 角速度→クオータニオン形式変換参考
+    # https://www.kazetest.com/vcmemo/quaternion/quaternion.htm
+    for data in rbf_mran._test_pre_res :
+        y2.append(data[0])
+    for data in rbf_mran2._test_pre_res :
+        y3.append(data[0])
+    plot_res(x, y2, "推測* w0", LINEWIDTH*5)
+    plot_res(x, y3, "推測 w0", LINEWIDTH*2)
+
+    plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.95)
+    plt.ticklabel_format(style='plain',axis='y')
+    plt.ticklabel_format(style='plain',axis='x')
+    plt.show()
+
 if __name__=="__main__" :
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--type', required=True)
     args = parser.parse_args()
 
     # starts = [55000, 60000, 65000]
-    starts = [i for i in range(50000, 65001, 50)]
+    starts = [i for i in range(40000, 65001, 50)]
     if args.type == "pos" :
         for start in starts :
             position(start)
@@ -331,5 +382,8 @@ if __name__=="__main__" :
     elif args.type == "quat" :
         for start in starts :
             quat(start)
+    elif args.type == "other" :
+        for start in starts :
+            other(start)
     else :
         print(f'no such type : {args.type}')
