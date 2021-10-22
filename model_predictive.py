@@ -359,7 +359,7 @@ def other(start) :
     for data in rbf_mran2._test_pre_res :
         y3.append(data[0])
     plot_res(x, y2, "推測* w0", LINEWIDTH*5)
-    plot_res(x, y3, "推測 w0", LINEWIDTH*2)
+    # plot_res(x, y3, "推測 w0", LINEWIDTH*2)
 
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.95)
     plt.ticklabel_format(style='plain',axis='y')

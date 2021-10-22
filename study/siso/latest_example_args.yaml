@@ -1,5 +1,5 @@
 data_len: 5000
-gen_new_data: true
+gen_new_data: false
 init_h: 0
 input_delay: 0
 n_change_u: -1
@@ -7,9 +7,9 @@ n_change_x: -1
 not_plot: false
 output_delay: 0
 param_file: param.yaml
-plot_len: 500
+plot_len: 1000
 plot_mode: 1
-plot_start: 3500
+plot_start: 4500
 study_name: siso
 sys: siso
 u_after: -1
