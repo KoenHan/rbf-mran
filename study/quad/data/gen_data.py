@@ -19,6 +19,8 @@ class Quad() :
         self.MAX_RPS_POW = MAX_RPS**2
         self.MAX_THRUST = self.MASS_OF_MACHINE*self.A_OF_GRAVITY*self.MAX_RPS_POW/(4*U_G*U_G)
         self.TORQUE_RATE = 0.25/MAX_RPS/MAX_RPS
+        self.RADIAN = 3.1415
+        self.TWICE_RADIAN = 2*self.RADIAN
 
         self.u = [0 for _ in range(4)]
         self.var_p = [0 for _ in range(self.VAR_SIZE)]
@@ -55,15 +57,32 @@ class Quad() :
         self.var_p[12] = self.MAX_THRUST*(-1.0+2.0*self.var_and_z_i[0]*self.var_and_z_i[0]+2.0*self.var_and_z_i[3]*self.var_and_z_i[3])*(rps_ccw1*abs(rps_ccw1)+rps_ccw2*abs(rps_ccw2)+rps_cw1*abs(rps_cw1)+rps_cw2*abs(rps_cw2))/(self.MASS_OF_MACHINE*self.MAX_RPS_POW) - self.A_OF_GRAVITY
 
     def update(self) :
+        def check_radian(rad) :
+            if rad > self.RADIAN :
+                return rad - self.TWICE_RADIAN
+            elif rad < -self.RADIAN :
+                return rad + self.TWICE_RADIAN
+            else :
+                return rad
+
         for i in range(self.VAR_SIZE) :
             self.var_and_z_i[i] += self.var_p[i]*self.dt
 
         # クオータニオン正規化
+        # print(self.var_and_z_i[0:4])
         q_norm = math.sqrt( self.var_and_z_i[0]*self.var_and_z_i[0]+self.var_and_z_i[1]*self.var_and_z_i[1]+self.var_and_z_i[2]*self.var_and_z_i[2] + self.var_and_z_i[3]*self.var_and_z_i[3])
-        self.var_and_z_i[0] = self.var_and_z_i[0]/q_norm
-        self.var_and_z_i[1] = self.var_and_z_i[1]/q_norm
-        self.var_and_z_i[2] = self.var_and_z_i[2]/q_norm
-        self.var_and_z_i[3] = self.var_and_z_i[3]/q_norm
+        # print(q_norm)
+        self.var_and_z_i[0] /= q_norm
+        self.var_and_z_i[1] /= q_norm
+        self.var_and_z_i[2] /= q_norm
+        self.var_and_z_i[3] /= q_norm
+        self.var_and_z_i[4] = check_radian(self.var_and_z_i[4])
+        self.var_and_z_i[5] = check_radian(self.var_and_z_i[5])
+        self.var_and_z_i[6] = check_radian(self.var_and_z_i[6])
+        # print(self.var_and_z_i[4:7])
+        # for tmp in self.var_and_z_i[4:7] :
+        #     if tmp > self.RADIAN or tmp < -self.RADIAN :
+        #         print('radian error')
 
     def get_q(self) :
         obs = deepcopy(self.var_and_z_i[:4])
@@ -97,7 +116,7 @@ def gen_file(vfile, wfile) :
     w_data = []
     for i in range(data_len) :
         # if i == 10 : exit()
-        x = [random.uniform(100, 100) for _ in range(4)]
+        x = [random.uniform(100, 200) for _ in range(4)]
         quad.calc(*x)
         quad.update()
         # print(quad.get_w())
@@ -113,7 +132,7 @@ def gen_file(vfile, wfile) :
     with open(wfile, 'w') as f:
         f.write('2\n3\n4\n')
         for w, u in zip(w_data, u_data) :
-            f.write('\t'.join(list(map(str, v+u))) + '\n')
+            f.write('\t'.join(list(map(str, w+u))) + '\n')
 
 def main() :
     gen_file('train_v.txt', 'train_w.txt')
