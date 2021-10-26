@@ -53,6 +53,13 @@ if __name__ == '__main__':
         if gen_res < 0 :
             exit()
 
+    if not os.path.isfile(train_file) :
+        print('No train.txt!!!! exit.')
+        exit()
+    elif not os.path.isfile(test_file) :
+        print('No test.txt!!! exit.')
+        exit()
+
     # パラメータファイル生成or読み込み
     param_file = study_folder+'/model/'+args.param_file
     if args.param_file == 'param.yaml' and not os.path.isfile(param_file) :
