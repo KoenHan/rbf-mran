@@ -116,7 +116,7 @@ def gen_file(vfile, wfile) :
     w_data = []
     for i in range(data_len) :
         # if i == 10 : exit()
-        x = [random.uniform(100, 200) for _ in range(4)]
+        x = [random.uniform(0, 100) for _ in range(4)]
         quad.calc(*x)
         quad.update()
         # print(quad.get_w())
