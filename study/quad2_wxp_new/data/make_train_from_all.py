@@ -26,7 +26,8 @@ if __name__ == "__main__" :
             # rps_cw2 = GAIN*float(data[-3])
             rps_ccw1 = GAIN*float(data[-2])
             rps_ccw2 = GAIN*float(data[-1])
-            u = rps_ccw1*abs(rps_ccw1) - rps_ccw2*abs(rps_ccw2)
+            # u = rps_ccw1*abs(rps_ccw1) - rps_ccw2*abs(rps_ccw2) # 論文では下になってるのになぜかこれになってた
+            u = rps_ccw1**2 - rps_ccw2**2
             tmp = "\t".join([str(wxp), str(pre_wx), str(u)])
             f.write(tmp+"\n")
             pre_wx = wx

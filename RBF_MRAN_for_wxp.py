@@ -75,10 +75,12 @@ class RBF_MRAN:
         self._P = np.eye(self._rbf.get_param_num())
         self._q = q # 小さくする
         # self._q = 0.1
-        self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ 大きくする
+        # self._R = np.eye(self._rbf_ny, dtype=np.float64) # 観測誤差ノイズ 大きくする
+        self._R = np.zeros((self._rbf_ny, self._rbf_ny), dtype=np.float64) # 観測誤差ノイズ 大きくする
 
         # Step 5で使われるパラメータ
-        self._delta = 0.0001 # p.55
+        self._delta = 1e-9 # p.55
+        # self._delta = 0.0001 # p.55
         self._Sw = Sw
         self._past_o = []
         self._z1 = self._rbf.get_one_unit_param_num()
@@ -226,10 +228,10 @@ class RBF_MRAN:
         return f
 
     def _gen_input(self):
-        # return np.array(self._past_sys_output[:self._past_sys_output_size]
-        #     + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
-        return np.array([0 for _ in range(self._past_sys_output_size)]
-            + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64) # wxpの学習ではpsoは必要ないので
+        return np.array(self._past_sys_output[:self._past_sys_output_size]
+            + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
+        # return np.array([0 for _ in range(self._past_sys_output_size)]
+        #     + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64) # wxpの学習ではpsoは必要ないので
 
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
