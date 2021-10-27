@@ -3,7 +3,8 @@ import time
 import optuna
 import argparse
 
-from RBF_MRAN import RBF_MRAN
+from RBF_MRAN_for_wxp import RBF_MRAN
+# from RBF_MRAN import RBF_MRAN
 from generate_data import gen_data
 from utils import save_param, gen_study
 
@@ -25,16 +26,16 @@ class Objective(object):
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
         pson = trial.suggest_int('past_sys_output_num', 1, 1)
-        E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.01, 1e-3)
-        E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.01, 1e-3)
-        E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 2.0, 0.1)
+        E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.1, 1e-3)
+        E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.1, 1e-3)
+        E3_max = trial.suggest_discrete_uniform('E3_max', 0.5, 5.0, 0.1)
         E3_min = trial.suggest_discrete_uniform('E3_min', 0.1, E3_max, 0.1)
         gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
-        kappa = trial.suggest_discrete_uniform('kappa', 0.1, 3, 0.01)
+        kappa = trial.suggest_discrete_uniform('kappa', 0.1, 10, 0.01)
         # kappa = trial.suggest_int('kappa', 1, 1)
-        # p0 = trial.suggest_discrete_uniform('p0', 0.1, 10, 0.1)
-        p0 = trial.suggest_int('p0', 1, 1)
-        q = trial.suggest_discrete_uniform('q', 0.01, 0.1, 0.01)
+        p0 = trial.suggest_discrete_uniform('p0', 0.1, 1, 0.01)
+        # p0 = trial.suggest_int('p0', 1, 1)
+        q = trial.suggest_discrete_uniform('q', 0.01, 1, 0.01)
         Nw = trial.suggest_int('Nw', 10, 80)
         Sw = trial.suggest_int('Sw', 10, 80)
 

@@ -7,10 +7,10 @@ n_change_x: -1
 not_plot: false
 output_delay: 0
 param_file: param.yaml
-plot_len: 50
+plot_len: 1000
 plot_mode: 1
-plot_start: 1000
-study_name: quad2_wxp
+plot_start: 90000
+study_name: quad2_wxp_new
 sys: mimo
 u_after: -1
 u_before: -1

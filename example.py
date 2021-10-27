@@ -7,7 +7,8 @@ import os
 import tqdm
 import numpy as np
 
-from RBF_MRAN import RBF_MRAN
+from RBF_MRAN_for_wxp import RBF_MRAN
+# from RBF_MRAN import RBF_MRAN
 from generate_data import *
 from plot import plot_study
 from utils import load_param, gen_study, save_args, save_ndarray
