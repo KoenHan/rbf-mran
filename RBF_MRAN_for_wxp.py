@@ -228,10 +228,10 @@ class RBF_MRAN:
         return f
 
     def _gen_input(self):
-        return np.array(self._past_sys_output[:self._past_sys_output_size]
-            + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
-        # return np.array([0 for _ in range(self._past_sys_output_size)]
-        #     + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64) # wxpの学習ではpsoは必要ないので
+        # return np.array(self._past_sys_output[:self._past_sys_output_size]
+        #     + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64)
+        return np.array([0 for _ in range(self._past_sys_output_size)]
+            + self._past_sys_input[:self._past_sys_input_size], dtype=np.float64) # wxpの学習ではpsoは必要ないので
 
     def train(self, data):
         yi = data[:self._rbf_ny] # 今のシステム出力
