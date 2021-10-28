@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-from RBF_MRAN import RBF_MRAN
+from RBF_MRAN_for_wxp import RBF_MRAN
+# from RBF_MRAN import RBF_MRAN
 from generate_data import *
 from plot import plot_study
 from utils import load_param, gen_study, save_args, save_ndarray
@@ -401,13 +402,13 @@ def wxp(start) :
     plot_res(x, y1, "真値 w0", LINEWIDTH*10)
 
     y2 = [y1[0]]
-    y3 = [y1[0]]
+    # y3 = [y1[0]]
     for data in rbf_mran._test_pre_res :
         y2.append(data[0])
-    for data in rbf_mran2._test_pre_res :
-        y3.append(data[0])
+    # for data in rbf_mran2._test_pre_res :
+    #     y3.append(data[0])
     plot_res(x, y2, "推測* w0", LINEWIDTH*5)
-    plot_res(x, y3, "推測 w0", LINEWIDTH*2)
+    # plot_res(x, y3, "推測 w0", LINEWIDTH*2)
     # print(y1)
     # print(y2)
 
