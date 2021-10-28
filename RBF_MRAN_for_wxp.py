@@ -238,7 +238,9 @@ class RBF_MRAN:
         yi_np = np.array(yi, dtype=np.float64)
         ui = data[-self._rbf_nu:] # 今のシステム入力
 
-
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
@@ -262,10 +264,6 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
 
-        if len(self._past_sys_input) == self._past_sys_input_limit:
-            del self._past_sys_input[:self._rbf_nu]
-        self._past_sys_input.extend(ui)
-
         self.save_res() # 履歴の逐次保存
 
         self._pre_yi = yi_np
@@ -274,7 +272,9 @@ class RBF_MRAN:
         yi = data[:self._rbf_ny]
         ui = data[-self._rbf_nu:]
 
-
+        if len(self._past_sys_input) == self._past_sys_input_limit:
+            del self._past_sys_input[:self._rbf_nu]
+        self._past_sys_input.extend(ui)
 
         if len(self._past_sys_input) == self._past_sys_input_limit \
         and len(self._past_sys_output) == self._past_sys_output_limit:
@@ -296,9 +296,6 @@ class RBF_MRAN:
             del self._past_sys_output[:self._rbf_ny]
         self._past_sys_output.extend(yi)
 
-        if len(self._past_sys_input) == self._past_sys_input_limit:
-            del self._past_sys_input[:self._rbf_nu]
-        self._past_sys_input.extend(ui)
         # print('psi ', self._past_sys_input)
         # print('pso ', self._past_sys_output)
 
