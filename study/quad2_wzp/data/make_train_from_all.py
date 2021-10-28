@@ -28,7 +28,7 @@ class QuadWxp :
         # self.GAIN = 1e4
 
     def wxp_f(self, ww, uuuu) :
-        wxp = 0.5*(2.0*(self.I_YY-self.I_ZZ)*ww+self.ROTOR_DISTANCE*self.MAX_THRUST*uuuu/self.MAX_RPS_POW)/self.I_XX
+        wxp = ((self.I_XX-self.I_YY)*ww-self.TORQUE_RATE*uuuu/self.MAX_RPS_POW)/self.I_ZZ
         return wxp
 
 if __name__ == "__main__" :
@@ -50,23 +50,23 @@ if __name__ == "__main__" :
         f.write('1\n') # wxp
         f.write('2\n') # 下のwwとuuuu
         for idx, data in enumerate(datas) :
-            # wx = float(data[4])
+            wx = float(data[4])
             wy = float(data[5])
-            wz = float(data[6])
+            # wz = float(data[6])
             if idx == 0:
                 # pre_wx = wx
-                pre_ww = wy*wz
+                pre_ww = wx*wy
                 continue
             # org_wxp = wx - pre_wx
-            # rps_cw1 = GAIN*float(data[-4])
-            # rps_cw2 = GAIN*float(data[-3])
+            rps_cw1 = GAIN*float(data[-4])
+            rps_cw2 = GAIN*float(data[-3])
             rps_ccw1 = GAIN*float(data[-2])
             rps_ccw2 = GAIN*float(data[-1])
-            uuuu = rps_ccw1*abs(rps_ccw1) - rps_ccw2*abs(rps_ccw2) # 論文では下になってるのになぜかこれになってた
+            uuuu = rps_ccw1*abs(rps_ccw1) + rps_ccw2*abs(rps_ccw2) - rps_cw1*abs(rps_cw1) - rps_cw2*abs(rps_cw2) # 論文では下になってるのになぜかこれになってた
             # uuuu = rps_ccw1**2 - rps_ccw2**2
-            wxp = quadwxp.wxp_f(pre_ww, uuuu)
+            wzp = quadwxp.wxp_f(pre_ww, uuuu)
             # print(org_wxp, wxp)
-            tmp = "\t".join([str(wxp), str(pre_ww), str(uuuu)])
+            tmp = "\t".join([str(wzp), str(pre_ww), str(uuuu)])
             f.write(tmp+"\n")
             # pre_wx = wx
-            pre_ww = wy*wz
+            pre_ww = wx*wy
