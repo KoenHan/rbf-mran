@@ -26,6 +26,8 @@ class RBF_MRAN:
         init_sigma = None
         if use_exist_net :
             init_w0 = load_ndarray(self._w0_param_file)
+            if len(init_w0.shape) == 1 :
+                init_w0 = init_w0.reshape(1, -1)
             init_wk = load_ndarray(self._wk_param_file)
             if len(init_wk.shape) == 1 :
                 init_wk = init_wk.reshape(1, -1)
@@ -33,6 +35,8 @@ class RBF_MRAN:
             if len(init_myu.shape) == 1 :
                 init_myu = init_myu.reshape(1, -1)
             init_sigma = load_ndarray(self._sigma_param_file)
+            # if len(init_sigma.shape) == 1 :
+            #     init_sigma = init_sigma.reshape(1, -1)
             init_h = init_wk.shape[1]
         # RBFネットワーク初期化
         self._rbf = RBF(

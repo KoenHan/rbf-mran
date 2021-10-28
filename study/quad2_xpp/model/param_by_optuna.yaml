@@ -1,0 +1,14 @@
+E1: 0.052000000000000005
+E2: 0.015
+E3: -1
+E3_max: 0.5
+E3_min: 0.4
+Nw: 65
+Sw: 55
+gamma: 0.98
+init_h: 0
+kappa: 4.3
+p0: 1
+past_sys_input_num: 1
+past_sys_output_num: 1
+q: 0.41000000000000003
