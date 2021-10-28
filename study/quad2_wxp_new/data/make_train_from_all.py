@@ -44,26 +44,29 @@ if __name__ == "__main__" :
     wxp_t w_t-1 u_t
     '''
     pre_wx = 0
+    pre_ww = 0
     with open("train.txt", "w") as f:
         f.write('2\n')
         f.write('1\n') # wxp
         f.write('2\n') # 下のwwとuuuu
         for idx, data in enumerate(datas) :
-            if idx == 0:
-                pre_wx = float(data[4])
-                continue
-            wx = float(data[4])
+            # wx = float(data[4])
             wy = float(data[5])
             wz = float(data[6])
-            org_wxp = wx - pre_wx
-            ww = wy*wz
+            if idx == 0:
+                # pre_wx = wx
+                pre_ww = wy*wz
+                continue
+            # org_wxp = wx - pre_wx
             # rps_cw1 = GAIN*float(data[-4])
             # rps_cw2 = GAIN*float(data[-3])
             rps_ccw1 = GAIN*float(data[-2])
             rps_ccw2 = GAIN*float(data[-1])
             uuuu = rps_ccw1*abs(rps_ccw1) - rps_ccw2*abs(rps_ccw2) # 論文では下になってるのになぜかこれになってた
             # uuuu = rps_ccw1**2 - rps_ccw2**2
-            wxp = quadwxp.wxp_f(ww, uuuu)
-            tmp = "\t".join([str(wxp), str(pre_wx), str(u)])
+            wxp = quadwxp.wxp_f(pre_ww, uuuu)
+            # print(org_wxp, wxp)
+            tmp = "\t".join([str(wxp), str(pre_ww), str(uuuu)])
             f.write(tmp+"\n")
-            pre_wx = wx
+            # pre_wx = wx
+            pre_ww = wy*wz
