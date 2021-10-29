@@ -45,7 +45,7 @@ if __name__ == "__main__" :
     with open("train.txt", "w") as f:
         f.write('2\n')
         f.write('1\n') # xpp
-        f.write('2\n') # 下のqqqqとuuuu
+        f.write('1\n') # q4u4
         for idx, data in enumerate(datas) :
             # wx = float(data[4])
             q0 = float(data[0])
