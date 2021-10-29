@@ -27,7 +27,7 @@ def make_file(infile, outfile) :
     print('end ', infile)
 
 if __name__ == "__main__" :
-    make_file('/home/han/catkin_ws/tmp.txt', 'rbfo.txt')
+    make_file('/home/han/catkin_ws/tmp.txt', 'rbfo.txt') # tmp.txtは上書きされたのでもうない
     make_file('/home/han/catkin_ws/tmp2.txt', 'fpo.txt')
     rbf_file = 'rbfo.txt' # tmp.txt
     fp_file = 'fpo.txt' # tmp2.txt
