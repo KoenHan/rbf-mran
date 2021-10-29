@@ -41,11 +41,7 @@ if __name__ == "__main__" :
     with open("quat_rate_sysin.txt", "r") as f:
         datas = [s.strip().split() for s in f.readlines()]
 
-    '''
-    出力ファイルの一行の中身
-    wxp_t w_t-1 u_t
-    '''
-    pre_qqqq = 0
+    # pre_qqqq = 0
     with open("train.txt", "w") as f:
         f.write('2\n')
         f.write('1\n') # xpp
@@ -63,9 +59,10 @@ if __name__ == "__main__" :
             rps_cw2 = GAIN*float(data[-3])
             rps_ccw1 = GAIN*float(data[-2])
             rps_ccw2 = GAIN*float(data[-1])
+            qqqq = q0*q2 + q1*q3
             uuuu = rps_ccw1*abs(rps_ccw1) + rps_ccw2*abs(rps_ccw2) + rps_cw1*abs(rps_cw1) + rps_cw2*abs(rps_cw2) # 論文では下になってるのになぜかこれになってた
-            q4u4 = pre_qqqq*uuuu
+            q4u4 = qqqq*uuuu
             xpp = quadwxp.calc_f(q4u4)
             tmp = "\t".join([str(xpp), str(q4u4)])
             f.write(tmp+"\n")
-            pre_qqqq = q0*q2 + q1*q3
+            # pre_qqqq = q0*q2 + q1*q3
