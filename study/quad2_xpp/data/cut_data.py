@@ -3,11 +3,14 @@
 '''
 
 if __name__ == "__main__" :
-    target_line_num = 50000
-    target_line_num += 3 # 先頭の3行は必ずいるので
+    start = 400000
+    start += 3 # 先頭の3行は必ずいるので
+    target_line_num = 120000
+    end = start + target_line_num
     cnt = 0
-    with open("train_def.txt", "r") as infile, open("train.txt", "w") as outfile :
-        while cnt < target_line_num :
+    with open("train_def.txt", "r") as infile, open("test.txt", "w") as outfile :
+        while cnt < end :
             line = infile.readline()
-            outfile.write(line)
+            if cnt < 3 or cnt >= start :
+                outfile.write(line)
             cnt += 1

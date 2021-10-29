@@ -27,10 +27,10 @@ class QuadWxp :
 
         # self.GAIN = 1e4
 
-    def calc_f(self, qqqq, uuuu) :
+    def calc_f(self, q4u4) :
         # (var_and_z_i[0]*var_and_z_i[2]+var_and_z_i[1]*var_and_z_i[3])
         # rps_ccw1*fabsf(rps_ccw1)+rps_ccw2*fabsf(rps_ccw2)+rps_cw1*fabsf(rps_cw1)+rps_cw2*fabsf(rps_cw2)
-        xpp = 2.0*self.MAX_THRUST*qqqq*uuuu/(self.MASS_OF_MACHINE*self.MAX_RPS_POW)
+        xpp = 2.0*self.MAX_THRUST*q4u4/(self.MASS_OF_MACHINE*self.MAX_RPS_POW)
         return xpp
 
 if __name__ == "__main__" :
@@ -64,7 +64,8 @@ if __name__ == "__main__" :
             rps_ccw1 = GAIN*float(data[-2])
             rps_ccw2 = GAIN*float(data[-1])
             uuuu = rps_ccw1*abs(rps_ccw1) + rps_ccw2*abs(rps_ccw2) + rps_cw1*abs(rps_cw1) + rps_cw2*abs(rps_cw2) # 論文では下になってるのになぜかこれになってた
-            xpp = quadwxp.calc_f(pre_qqqq, uuuu)
-            tmp = "\t".join([str(xpp), str(pre_qqqq), str(uuuu)])
+            q4u4 = pre_qqqq*uuuu
+            xpp = quadwxp.calc_f(q4u4)
+            tmp = "\t".join([str(xpp), str(q4u4)])
             f.write(tmp+"\n")
             pre_qqqq = q0*q2 + q1*q3
