@@ -74,6 +74,9 @@ class RBF:
         # 隠れニューロン数履歴保存用
         self._h_hist = []
 
+        # デバッグ
+        self._r2_hist = []
+
     def get_h(self):
         return self._h
 
@@ -204,6 +207,7 @@ class RBF:
         # self._r = np.apply_along_axis(lambda myu, xi: xi - myu, 0, self._myu, input)
         self._r = np.tile(input, (self._h, 1)).T - self._myu # こっちのほうが速い
         self._r2 = np.apply_along_axis(lambda a: a@a, 0, self._r)
+        self._r2_hist.append(self._r2) # デバッグのためにある
         self._phi = np.exp(-self._r2/(self._sigma*self._sigma))
         return self._w0 + self._wk@self._phi
 

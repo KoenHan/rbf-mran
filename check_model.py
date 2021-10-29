@@ -87,11 +87,14 @@ if __name__ == '__main__':
         for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
             # print(data)
             # warn : dataの型がlist(str)だけどいいのか？
-            rbf_mran.test(data)
-            res = -11
+            print([0] + data[-2:])
+            rbf_mran.test([0] + data[-2:])
+            res = -111111
+            # if len(rbf_mran._rbf._r2_hist) > 0 :
+            #     res =  rbf_mran._rbf._r2_hist[-1]
             if len(rbf_mran._test_pre_res) > 0 :
-                res =  rbf_mran._test_pre_res[-1][0]
-            tmp = str(res) + '\t' + str(data[1]) + '\t' + str(data[2]) + '\n'
+                res =  rbf_mran._test_pre_res[-1]
+            tmp = str(res) + '\t' + str(data[-2]) + '\t' + str(data[-1]) + '\n'
             ofile.write(tmp)
     print('Test finished.')
 
