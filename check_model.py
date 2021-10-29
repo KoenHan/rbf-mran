@@ -7,7 +7,7 @@ import os
 import tqdm
 import numpy as np
 
-from RBF_MRAN import RBF_MRAN
+from RBF_MRAN_for_wxp import RBF_MRAN
 from generate_data import *
 from plot import plot_study
 from utils import load_param, gen_study, save_args, save_ndarray
@@ -39,8 +39,9 @@ if __name__ == '__main__':
     # プロジェクトフォルダ作成
     study_folder = "./study/" + args.study_name
 
-    train_file = study_folder+'/data/train.txt'
-    test_file = study_folder+'/data/test.txt'
+    test_file = 'check_model_input.txt'
+    # train_file = study_folder+'/data/train.txt'
+    # test_file = study_folder+'/data/test.txt'
 
 
     # パラメータファイル読み込みだけど無視される
@@ -48,13 +49,13 @@ if __name__ == '__main__':
     param_file = study_folder+'/model/'+args.param_file
     param = load_param(param_file)
 
-    with open(train_file, mode='r') as f:
+    with open(test_file, mode='r') as f:
         l = f.readlines()
     datas = [list(map(float, s.strip().split())) for s in l]
 
     rbf_mran = RBF_MRAN(
-        nu=int(datas[2][0]), # システム入力(制御入力)の次元
-        ny=int(datas[1][0]), # システム出力ベクトルの次元
+        nu=2, # システム入力(制御入力)の次元
+        ny=1, # システム出力ベクトルの次元
         past_sys_input_num=param['past_sys_input_num'], # 過去のシステム入力保存数
         past_sys_output_num=param['past_sys_output_num'], # 過去のシステム出力保存数
         # init_h=param['init_h'], # スタート時の隠れニューロン数
@@ -73,18 +74,30 @@ if __name__ == '__main__':
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay,
         study_folder=study_folder, # 出力の観測の遅れステップ
-        use_exist_net=True) # 既存のネットワークを使うかどうか
+        use_exist_net=True,
+        readonly=True) # 既存のネットワークを使うかどうか
 
     with open(test_file, mode='r') as f:
         l = f.readlines()
-    datas = [s.strip().split() for s in l]
+    datas = [list(map(float, s.strip().split())) for s in l]
     # 検証
     print('Start test.')
-    for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
-        rbf_mran.test(data)
+    outfile = "check_model_res.txt"
+    with open(outfile, "w") as ofile :
+        for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
+            # print(data)
+            # warn : dataの型がlist(str)だけどいいのか？
+            rbf_mran.test(data)
+            res = -11
+            if len(rbf_mran._test_pre_res) > 0 :
+                res =  rbf_mran._test_pre_res[-1][0]
+            tmp = str(res) + '\t' + str(data[1]) + '\t' + str(data[2]) + '\n'
+            ofile.write(tmp)
     print('Test finished.')
 
+
     # 色々保存とプロット
+    '''
     rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
     plot_study(
         study_name=args.study_name,
@@ -92,7 +105,7 @@ if __name__ == '__main__':
         plot_len=args.plot_len,
         # need_rt=args.realtime,
         eh_mode=args.plot_mode)
-
+    '''
 
 
 
