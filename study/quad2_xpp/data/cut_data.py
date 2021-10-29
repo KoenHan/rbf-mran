@@ -3,9 +3,9 @@
 '''
 
 if __name__ == "__main__" :
-    start = 0
+    start = 1000000
     start += 3 # 先頭の3行は必ずいるので
-    target_line_num = 400000
+    target_line_num = 1000000
     end = start + target_line_num
     cnt = 0
     with open("train_def.txt", "r") as infile, open("train.txt", "w") as outfile :
