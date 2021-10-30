@@ -201,6 +201,8 @@ class RBF_MRAN:
             # self._P = (I - K@PI.T)@self._P + random.uniform(0, 0.1)*I # todo: 勾配方向のランダムステップの実装
 
         # Step 5
+        '''
+        # ニューロンを消さずにしたらどうなるか気になるのでコメントアウトしてみる
         if o is not None:
             pruned_unit = self._rbf.prune_unit(o, self._Sw, self._delta)
             # Pの調整
@@ -209,6 +211,8 @@ class RBF_MRAN:
                 self._P = np.delete(
                     np.delete(self._P, slice(start, start+self._z1), 0),
                     slice(start, start+self._z1), 1)
+        '''
+
 
         # 更新が終わったのでインクリメント
         self._cnt_train_num += 1
