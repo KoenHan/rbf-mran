@@ -73,7 +73,7 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
         plt.title(ax_name[d_ax], y=-0.2)
         '''
 
-def plot_test_err_res(gt_file, pre_res_file, title, fig_folder='./fig/'):
+def plot_res_err(gt_file, pre_res_file, title, fig_folder='./fig/'):
     with open(gt_file, mode='r') as f:
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
@@ -184,9 +184,10 @@ def plot_study(study_name, plot_start, plot_len, eh_mode=1):
         os.makedirs(fig_folder)
     if os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test', fig_folder)
-        plot_test_err_res(test_file, test_ps_file, 'test_err', fig_folder)
+        plot_res_err(test_file, test_ps_file, 'test_err', fig_folder)
     if os.path.isfile(train_ps_file):
         plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime', fig_folder)
+        plot_res_err(train_file, train_ps_file, 'train_err', fig_folder)
     plot_err_hist(err_file, eh_mode, fig_folder)
     plot_h(h_hist_file, fig_folder)
     plt.show()
