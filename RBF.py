@@ -137,10 +137,9 @@ class RBF:
             di(double):
                 xiと一番近いμとの距離
         """
-        di = np.inf
         di = 1.0e8
         for col in range(self._h):
-            e = np.linalg.norm(xi - self._myu[:, col])
+            e = np.linalg.norm(xi - self._myu[:, col], ord=2)
             if e < di:
                 di = deepcopy(e)
         return di

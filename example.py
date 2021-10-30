@@ -92,7 +92,8 @@ if __name__ == '__main__':
         input_delay=args.input_delay, # 入力の遅れステップ
         output_delay=args.output_delay,
         study_folder=study_folder, # 出力の観測の遅れステップ
-        use_exist_net=args.use_exist_net) # 既存のネットワークを使うかどうか
+        use_exist_net=args.use_exist_net,
+        exe_mode=RBF_MRAN.EXE_MODE.TRAIN_AND_TEST) # 既存のネットワークを使うかどうか
 
     # 学習
     print('Start train.')

@@ -9,7 +9,7 @@ output_delay: 0
 param_file: param.yaml
 plot_len: 1000
 plot_mode: 1
-plot_start: 100000
+plot_start: 0
 study_name: quad2_xpp
 sys: mimo
 u_after: -1
