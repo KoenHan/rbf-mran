@@ -73,6 +73,32 @@ def plot_pre_res(gt_file, pre_res_file, plot_start, plot_len, title, fig_folder=
         plt.title(ax_name[d_ax], y=-0.2)
         '''
 
+def plot_test_err_res(gt_file, pre_res_file, title, fig_folder='./fig/'):
+    with open(gt_file, mode='r') as f:
+        data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
+    with open(pre_res_file, mode='r') as f:
+        data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
+    
+
+    ny = int(data1[1][0])
+    data1 = data1[int(data1[0][0]) + 1:]
+    x = [i for i in range(len(data1))]
+    for d_ax in range(ny):
+        y1 = [d[d_ax] for d in data1]
+        y2 = [d[d_ax] for d in data2]
+        y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
+        y = [yy1 - yy2 for yy1, yy2 in zip(y1, y2)]
+        fig = plt.figure(title+'_te_'+str(d_ax), figsize=(WINWIDTH, WINHEIGHT))
+        
+        len_y = len(y)
+        x = [i for i in range(len_y)]
+        plt.plot(x, y, label=title, linewidth=LINEWIDTH)
+
+        plt.title('test_err_'+str(d_ax), y=-0.2)
+        # plt.savefig(fig_folder+ax_name[d_ax]+'.png')
+        plt.legend()
+        # '''
+
 def plot_err_hist(err_hist_file, mode=0, fig_folder='./fig/'):
     with open(err_hist_file, mode='r') as f:
         data = [float(s.strip()) for s in f.readlines()]
@@ -158,6 +184,7 @@ def plot_study(study_name, plot_start, plot_len, eh_mode=1):
         os.makedirs(fig_folder)
     if os.path.isfile(test_ps_file) :
         plot_pre_res(test_file, test_ps_file, plot_start, plot_len, 'test', fig_folder)
+        plot_test_err_res(test_file, test_ps_file, 'test_err', fig_folder)
     if os.path.isfile(train_ps_file):
         plot_pre_res(train_file, train_ps_file, plot_start, plot_len, 'realtime', fig_folder)
     plot_err_hist(err_file, eh_mode, fig_folder)
