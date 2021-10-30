@@ -3,12 +3,12 @@
 '''
 
 if __name__ == "__main__" :
-    start = 4500000
+    start = 200000
     start += 3 # 先頭の3行は必ずいるので
-    target_line_num = 1000000
+    target_line_num = 10000
     end = start + target_line_num
     cnt = 0
-    with open("train_def.txt", "r") as infile, open("test.txt", "w") as outfile :
+    with open("train_def.txt", "r") as infile, open("train.txt", "w") as outfile :
         while cnt < end :
             line = infile.readline()
             if cnt < 3 or cnt >= start :

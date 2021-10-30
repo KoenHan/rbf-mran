@@ -1,5 +1,5 @@
 '''
-学習用データで学習し，検証データで検証するプログラム
+テストしかしないコード
 '''
 
 import argparse
@@ -16,32 +16,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('-s', '--sys', help='Specific system type(siso or mimo)', required=True)
     parser.add_argument('-sn', '--study_name', required=True)
-    parser.add_argument('-gnd', '--gen_new_data', help='If True, generate new train/test data. Default: False.', action='store_true')
-    parser.add_argument('-dl', '--data_len', help='生成されるデータファイルの行数．', type=int, default=5000)
-    parser.add_argument('-ncx', '--n_change_x', help='xが切り替わるnの指定．', type=int, default=-1)
-    parser.add_argument('-ncu', '--n_change_u', help='uが切り替わるnの指定．', type=int, default=-1)
     parser.add_argument('-pf', '--param_file', help='モデル初期化の際に用いるハイパーパラメータファイル名．', default='param.yaml')
     # parser.add_argument('-rt', '--realtime', help='Trueなら，学習中（＝リアルタイムのシステム同定）の履歴を保存する．Default: False.', action='store_true')
-    parser.add_argument('-ps', '--plot_start', help='See plot.py/plot_pre_res() doc string.', type=int, default=3500)
-    parser.add_argument('-pl', '--plot_len', help='See plot.py/plot_pre_res() doc string.', type=int, default=500)
+    parser.add_argument('-ps', '--plot_start', help='See plot.py/plot_pre_res() doc string.', type=int, required=True)
+    parser.add_argument('-pl', '--plot_len', help='See plot.py/plot_pre_res() doc string.', type=int, required=True)
     parser.add_argument('-pm', '--plot_mode', help='See plot.py/plot_err_hist() code.', type=int, default=1)
     parser.add_argument('-id', '--input_delay', type=int, default=0)
     parser.add_argument('-od', '--output_delay', type=int, default=0)
-    parser.add_argument('-xb', '--x_before', type=int, default=-1)
-    parser.add_argument('-xa', '--x_after', type=int, default=-1)
-    parser.add_argument('-ub', '--u_before', type=int, default=-1)
-    parser.add_argument('-ua', '--u_after', type=int, default=-1)
     parser.add_argument('-ih', '--init_h', type=int, default=0) # auto.shで動かすための一時的なオプション
-    parser.add_argument('-np', '--not_plot', action='store_true')
-    parser.add_argument('-uen', '--use_exist_net', action='store_true')
     args = parser.parse_args()
 
     # プロジェクトフォルダ作成
     study_folder = "./study/" + args.study_name
 
-    test_file = 'check_model_input.txt'
+    # test_file = 'check_model_input.txt'
     # train_file = study_folder+'/data/train.txt'
-    # test_file = study_folder+'/data/test.txt'
+    test_file = study_folder+'/data/test.txt'
 
 
     # パラメータファイル読み込みだけど無視される
@@ -82,20 +72,17 @@ if __name__ == '__main__':
     datas = [list(map(float, s.strip().split())) for s in l]
     # 検証
     print('Start test.')
-    outfile = "check_model_res.txt"
-    with open(outfile, "w") as ofile :
-        for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
-            # print(data)
-            # warn : dataの型がlist(str)だけどいいのか？
-            print([0] + data[-2:])
-            rbf_mran.test([0] + data[-2:])
-            res = -111111
-            # if len(rbf_mran._rbf._r2_hist) > 0 :
-            #     res =  rbf_mran._rbf._r2_hist[-1]
-            if len(rbf_mran._test_pre_res) > 0 :
-                res =  rbf_mran._test_pre_res[-1]
-            tmp = str(res) + '\t' + str(data[-2]) + '\t' + str(data[-1]) + '\n'
-            ofile.write(tmp)
+    for data in tqdm.tqdm(datas[int(datas[0][0])+1:]) :
+        rbf_mran.test(data)
     print('Test finished.')
+
+    # 色々保存とプロット
+    rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
+    plot_study(
+        study_name=args.study_name,
+        plot_start=args.plot_start,
+        plot_len=args.plot_len,
+        # need_rt=args.realtime,
+        eh_mode=args.plot_mode)
 
 

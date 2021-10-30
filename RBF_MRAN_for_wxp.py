@@ -311,7 +311,7 @@ class RBF_MRAN:
 
     def save_res(self, is_last_save=False):
         # len(*) == 0ならis_last_saveを無視したいからこうしてるけど書き直せるけど一旦放置
-        if len(self._h_hist) :
+        if len(self._h_hist) and not self.readonly :
             self._save_hist(is_last_save)
         if len(self._test_pre_res) :
             self._save_pre_res(self._test_pre_res, self._test_ps_file, is_last_save, 'test')
