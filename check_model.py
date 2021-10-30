@@ -99,16 +99,3 @@ if __name__ == '__main__':
     print('Test finished.')
 
 
-    # 色々保存とプロット
-    '''
-    rbf_mran.save_res(is_last_save=True) # 途中で保存しているが残りの保存
-    plot_study(
-        study_name=args.study_name,
-        plot_start=args.plot_start,
-        plot_len=args.plot_len,
-        # need_rt=args.realtime,
-        eh_mode=args.plot_mode)
-    '''
-
-
-
