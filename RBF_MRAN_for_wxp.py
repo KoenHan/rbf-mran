@@ -5,6 +5,7 @@ from enum import Enum
 
 from RBF import RBF
 from utils import save_ndarray, load_ndarray
+import random
 
 class RBF_MRAN:
     class EXE_MODE(Enum) :
