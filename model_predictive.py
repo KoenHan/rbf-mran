@@ -52,8 +52,8 @@ def get_rbf_mran_and_hist_len(study_folder) :
         p0=param['p'] if 'p' in param else 1.0,
         q=param['q'] if 'q' in param else 0.1,
         study_folder=study_folder,
-        use_exist_net=True,
-        readonly=True) # 既存のネットワークを使うかどうか
+        use_exist_net=True, # 既存のネットワークを使うかどうか
+        exe_mode=RBF_MRAN.EXE_MODE.READ_ONLY)
     return rbf_mran, hist_len
 
 def quat(start) :
