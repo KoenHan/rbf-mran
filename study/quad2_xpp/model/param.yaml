@@ -3,12 +3,12 @@ E2: 0.144
 E3: -1
 E3_max: 0.1
 E3_min: 0.0
-Nw: 10 
-Sw: 500 
+Nw: 41
+Sw: 23
 gamma: 0.98
 init_h: 0
 kappa: 3.6
 p0: 1
 past_sys_input_num: 1
 past_sys_output_num: 1
-q: 0.1
+q: 0.001
