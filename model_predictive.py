@@ -24,7 +24,7 @@ def plot_res(x, y, label, lw=LINEWIDTH):
     # plt.title(title, y=-0.25)
     # plt.savefig(fig_folder+'/h_hist.png')
 
-def get_rbf_mran_and_hist_len(study_folder) :
+def get_rbf_mran_and_hist_len(study_folder, exe_mode) :
     param_file = study_folder+'/model/param.yaml'
     train_file = study_folder+'/data/train.txt'
     with open(train_file, mode='r') as f:
@@ -53,7 +53,7 @@ def get_rbf_mran_and_hist_len(study_folder) :
         q=param['q'] if 'q' in param else 0.1,
         study_folder=study_folder,
         use_exist_net=True, # 既存のネットワークを使うかどうか
-        exe_mode=RBF_MRAN.EXE_MODE.READ_ONLY)
+        exe_mode=exe_mode)
     return rbf_mran, hist_len
 
 def quat(start) :
@@ -118,14 +118,13 @@ def quat(start) :
 
 def euler(start) :
     study_folder = "./study/ros_test_angle_euler3"
-    rbf_mran, hist_len = get_rbf_mran_and_hist_len(study_folder)
+    rbf_mran, _ = get_rbf_mran_and_hist_len(study_folder)
     rbf_mran2 = deepcopy(rbf_mran)
 
     qrs_file = study_folder+'/data/quat_rate_sysin.txt'
     with open(qrs_file, mode='r') as f:
         l = f.readlines()
     qrs_datas = [list(map(float, s.strip().split())) for s in l]
-
 
     idx = int(qrs_datas[0][0]) + start
     horizen = 50
@@ -366,15 +365,19 @@ def other(start) :
     plt.ticklabel_format(style='plain',axis='x')
     plt.show()
 
+def save_graph_data(data1, data2, start) :
+    with open(f'graph_data/{start}.txt', 'w') as f :
+        for d1, d2 in zip(data1, data2) :
+            f.write(str(d1) + '\t' + str(d2) + '\n')
+
 def wxp(start) :
-    study_folder = "./study/quad2_wxp_new"
-    rbf_mran, _ = get_rbf_mran_and_hist_len(study_folder)
-    rbf_mran2 = deepcopy(rbf_mran)
+    study_folder = "./study/quad2_wxp"
+    rbf_mran, _ = get_rbf_mran_and_hist_len(study_folder, RBF_MRAN.EXE_MODE.TEST_ONLY)
+    # rbf_mran2 = deepcopy(rbf_mran)
+    # rbf_mran2.exe_mode = RBF_MRAN.EXE_MODE.READ_ONLY
     nu = rbf_mran._rbf_nu
     ny = rbf_mran._rbf_ny
-    # print(nu)
-    # print(ny)
-    qrs_file = study_folder+'/data/train.txt'
+    qrs_file = study_folder+'/data/test.txt'
     with open(qrs_file, mode='r') as f:
         l = f.readlines()
     qrs_datas = [list(map(float, s.strip().split())) for s in l]
@@ -382,16 +385,14 @@ def wxp(start) :
     idx = int(qrs_datas[0][0]) + start
     horizen = 50
     y = qrs_datas[idx:idx+horizen]
-    w_euler = []
+    input_ny = []
     x = [i for i in range(start, start+horizen)]
     for i, data in enumerate(y) :
         if len(rbf_mran._test_pre_res) == 0 :
-            w_euler = deepcopy(data[:ny])
+            input_ny = deepcopy(data[:ny])
         else :
-            w_euler = deepcopy(rbf_mran._test_pre_res[-1]).tolist() # 実際の制御ではこうなるから
-        w_euler2 = deepcopy(data[:ny])
-        rbf_mran.test(deepcopy(w_euler) + deepcopy(data[-nu:]))
-        rbf_mran2.test(deepcopy(w_euler2) + deepcopy(data[-nu:]))
+            input_ny = deepcopy(rbf_mran._test_pre_res[-1]).tolist() # 実際の制御ではこうなるから
+        rbf_mran.test(deepcopy(input_ny) + deepcopy(data[-nu:]))
 
     title = "モデル予測結果"
     fig = plt.figure(title, figsize=(WINWIDTH, WINHEIGHT))
@@ -399,18 +400,14 @@ def wxp(start) :
     y1 = []
     for data in y :
         y1.append(data[0])
-    plot_res(x, y1, "真値 w0", LINEWIDTH*10)
-
     y2 = [y1[0]]
-    # y3 = [y1[0]]
     for data in rbf_mran._test_pre_res :
         y2.append(data[0])
-    # for data in rbf_mran2._test_pre_res :
-    #     y3.append(data[0])
+
+    plot_res(x, y1, "真値 w0", LINEWIDTH*10)
     plot_res(x, y2, "推測* w0", LINEWIDTH*5)
-    # plot_res(x, y3, "推測 w0", LINEWIDTH*2)
-    # print(y1)
-    # print(y2)
+
+    # save_graph_data(y1, y2, start)
 
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.95)
     plt.ticklabel_format(style='plain',axis='y')
