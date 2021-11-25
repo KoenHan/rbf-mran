@@ -1,4 +1,0 @@
-Loaded param file: ./study/quad2_wxp/model/param.yaml
-Use exist network.
-Start test.
-Test finished.

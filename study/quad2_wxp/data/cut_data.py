@@ -6,7 +6,7 @@ if __name__ == "__main__" :
     start = 100000
     target_line_num = 50000
     start += 3 # 先頭の3行は必ずいるので
-    end = start + target_line_num + 3
+    end = start + target_line_num
     cnt = 0
     infile = "train_def.txt"
     outfile = "test.txt"
