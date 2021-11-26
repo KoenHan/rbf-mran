@@ -370,8 +370,8 @@ def save_graph_data(data1, data2, start) :
         for d1, d2 in zip(data1, data2) :
             f.write(str(d1) + '\t' + str(d2) + '\n')
 
-def wxp(start) :
-    study_folder = "./study/quad2_wxp"
+def wp(start) :
+    study_folder = "./study/quad2_wzp"
     rbf_mran, _ = get_rbf_mran_and_hist_len(study_folder, RBF_MRAN.EXE_MODE.TEST_ONLY)
     # rbf_mran2 = deepcopy(rbf_mran)
     # rbf_mran2.exe_mode = RBF_MRAN.EXE_MODE.READ_ONLY
@@ -404,15 +404,16 @@ def wxp(start) :
     for data in rbf_mran._test_pre_res :
         y2.append(data[0])
 
+    save_graph_data(y1, y2, start)
+
+    '''
     plot_res(x, y1, "真値 w0", LINEWIDTH*10)
     plot_res(x, y2, "推測* w0", LINEWIDTH*5)
-
-    # save_graph_data(y1, y2, start)
-
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.95)
     plt.ticklabel_format(style='plain',axis='y')
     plt.ticklabel_format(style='plain',axis='x')
     plt.show()
+    '''
 
 
 if __name__=="__main__" :
@@ -434,8 +435,8 @@ if __name__=="__main__" :
     elif args.type == "other" :
         for start in starts :
             other(start)
-    elif args.type == "wxp" :
+    elif args.type == "wp" :
         for start in starts :
-            wxp(start)
+            wp(start)
     else :
         print(f'no such type : {args.type}')
