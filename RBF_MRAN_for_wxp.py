@@ -340,11 +340,11 @@ class RBF_MRAN:
             self._save_pre_res(self._train_pre_res, self._train_ps_file, is_last_save, 'train')
         if is_last_save and self._em_include_train() :
             self._save_param()
-    
+
     def _em_include_train(self) :
         return self.exe_mode == RBF_MRAN.EXE_MODE.TRAIN_AND_TEST \
                 or self.exe_mode == RBF_MRAN.EXE_MODE.TRAIN_ONLY
-    
+
     def _em_include_test(self) :
         return self.exe_mode == RBF_MRAN.EXE_MODE.TRAIN_AND_TEST \
                 or self.exe_mode == RBF_MRAN.EXE_MODE.TEST_ONLY
