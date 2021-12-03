@@ -76,6 +76,11 @@ class Objective(object):
                 return 1e5 # 時間がかかりすぎているので中止
         print('Finish train')
 
+        # wpのネットワークの場合，隠れニューロン数が大きすぎると良くないので
+        if rbf_mran._rbf._h > 100 :
+            print("Hidden newron too many...")
+            return 1e5
+
         MAE = rbf_mran.calc_MAE()
         if MAE < self.min_MAE:
             self.min_MAE = MAE
