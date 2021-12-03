@@ -1,5 +1,6 @@
 import os
 import time
+from numpy import printoptions
 import optuna
 import argparse
 
@@ -26,15 +27,9 @@ class Objective(object):
     def __call__(self, trial):
         psin = trial.suggest_int('past_sys_input_num', 1, 1)
         pson = trial.suggest_int('past_sys_output_num', 1, 1)
-        '''
-        E1 = trial.suggest_int('E1', 0, 0)
-        E2 = trial.suggest_int('E2', 0, 0)
-        E3_max = trial.suggest_int('E3_max', 0, 0)
-        E3_min = trial.suggest_int('E3_min', 0, 0)
-        '''
-        E1 = trial.suggest_discrete_uniform('E1', 1e-3, 0.15, 1e-3)
-        E2 = trial.suggest_discrete_uniform('E2', 1e-3, 0.15, 1e-3)
-        E3_max = trial.suggest_discrete_uniform('E3_max', 0.0, 1.2, 0.1)
+        E1 = trial.suggest_discrete_uniform('E1', 0.01, 0.3, 0.01)
+        E2 = trial.suggest_discrete_uniform('E2', 0.01, 0.3, 0.01)
+        E3_max = trial.suggest_discrete_uniform('E3_max', 0.0, 3.0, 0.1)
         E3_min = trial.suggest_discrete_uniform('E3_min', 0.0, E3_max, 0.1)
         gamma = trial.suggest_discrete_uniform('gamma', 0.95, 1.0, 0.01)
         # gamma = trial.suggest_int('gamma', 1, 1)
@@ -44,8 +39,8 @@ class Objective(object):
         p0 = trial.suggest_int('p0', 1, 1)
         # q = trial.suggest_int('q', 0, 0)
         q = trial.suggest_discrete_uniform('q', 0.01, 1, 0.01)
-        Nw = trial.suggest_int('Nw', 10, 80)
-        Sw = trial.suggest_int('Sw', 10, 80)
+        Nw = trial.suggest_int('Nw', 10, 40)
+        Sw = trial.suggest_int('Sw', 10, 40)
 
         with open(self.train_file, mode='r') as f:
             l = f.readlines()
@@ -68,7 +63,8 @@ class Objective(object):
             gamma=gamma,
             Nw=Nw,
             Sw=Sw,
-            study_folder=self.study_folder)
+            study_folder=self.study_folder,
+            exe_mode=RBF_MRAN.EXE_MODE.TRAIN_AND_TEST)
 
         print('Start train')
         start = time.time()
@@ -128,10 +124,15 @@ if __name__=="__main__":
     # データ生成
     train_file = study_folder+'/data/train.txt'
     test_file = study_folder+'/data/test.txt'
+    '''
     if args.gen_new_data or not os.path.isfile(train_file) :
         gen_res = gen_data(args.sys, train_file, test_file, args.data_len)
         if gen_res < 0 :
             exit()
+    '''
+
+    assert os.path.isfile(train_file), 'No train.txt!!!! exit.'
+    assert os.path.isfile(test_file), 'No test.txt!!! exit.'
 
     study = optuna.create_study(
         study_name=args.study_name,

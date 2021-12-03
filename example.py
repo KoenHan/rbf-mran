@@ -54,12 +54,8 @@ if __name__ == '__main__':
         if gen_res < 0 :
             exit()
 
-    if not os.path.isfile(train_file) :
-        print('No train.txt!!!! exit.')
-        exit()
-    elif not os.path.isfile(test_file) :
-        print('No test.txt!!! exit.')
-        exit()
+    assert os.path.isfile(train_file), 'No train.txt!!!! exit.'
+    assert os.path.isfile(test_file), 'No test.txt!!! exit.'
 
     # パラメータファイル生成or読み込み
     param_file = study_folder+'/model/'+args.param_file

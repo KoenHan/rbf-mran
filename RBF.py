@@ -169,7 +169,7 @@ class RBF:
             unit.past_o.append(o[:, hi])
             if len(unit.past_o) > Sw :
                 del unit.past_o[0]
-            if must_prune(unit.past_o) :
+            if len(unit.past_o) == Sw and must_prune(unit.past_o) :
                 must_prune_unit.append(hi)
 
         # 削除すべきニューロンの削除
