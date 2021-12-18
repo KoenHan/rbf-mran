@@ -78,7 +78,6 @@ def plot_res_err(gt_file, pre_res_file, title, fig_folder='./fig/'):
         data1 = [list(map(float, s.strip().split())) for s in f.readlines()]
     with open(pre_res_file, mode='r') as f:
         data2 = [list(map(float, s.strip().split())) for s in f.readlines()]
-    
 
     ny = int(data1[1][0])
     data1 = data1[int(data1[0][0]) + 1:]
@@ -87,17 +86,23 @@ def plot_res_err(gt_file, pre_res_file, title, fig_folder='./fig/'):
         y1 = [d[d_ax] for d in data1]
         y2 = [d[d_ax] for d in data2]
         y2 = [np.nan for _ in range(len(y1) - len(y2))] + y2
-        y = [yy1 - yy2 for yy1, yy2 in zip(y1, y2)]
-        fig = plt.figure(title+'_te_'+str(d_ax), figsize=(WINWIDTH, WINHEIGHT))
-        
+        y = []
+        error_type = '_RE'
+        try :
+            y = [abs(yy2 - yy1)/yy1 for yy1, yy2 in zip(y1, y2)] # 誤差率
+        except ZeroDivisionError :
+            print('Detected zero division error!!! Use absolute error.')
+            y = [yy2 - yy1 for yy1, yy2 in zip(y1, y2)] # 誤差
+            error_type = '_AE'
+        fig_title = title+'_te_'+str(d_ax)+error_type
+        fig = plt.figure(fig_title, figsize=(WINWIDTH, WINHEIGHT))
+
         len_y = len(y)
         x = [i for i in range(len_y)]
-        plt.plot(x, y, label=title, linewidth=LINEWIDTH)
+        plt.plot(x, y, label=title+error_type, linewidth=LINEWIDTH)
 
-        plt.title('test_err_'+str(d_ax), y=-0.2)
-        # plt.savefig(fig_folder+ax_name[d_ax]+'.png')
+        plt.savefig(fig_folder+fig_title+'.png')
         plt.legend()
-        # '''
 
 def plot_err_hist(err_hist_file, mode=0, fig_folder='./fig/'):
     with open(err_hist_file, mode='r') as f:
@@ -163,7 +168,7 @@ def plot_h(h_hist_file, fig_folder='./fig/'):
     plt.subplots_adjust(left=0.05, right=0.99, bottom=0.1, top=0.99)
     # plt.legend()
     # plt.title(title, y=-0.25)
-    plt.savefig(fig_folder+'/h_hist.png')
+    plt.savefig(fig_folder+'h_hist.png')
 
 def plot_all(err_file, h_hist_file, test_file, pre_res_file, plot_start, plot_len, mode=1):
     plot_pre_res(test_file, pre_res_file, plot_start, plot_len)
@@ -201,3 +206,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     plot_study(args.study_name, args.plot_start, args.plot_len, eh_mode=args.mode)
+
